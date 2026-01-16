@@ -15,13 +15,15 @@ function Wallet({ user, initData, onBalanceUpdate }) {
   }, []);
 
   const fetchTransactions = async () => {
+    if (!initData) return;
     try {
       const response = await api.get('/transactions', {
         headers: { 'x-telegram-init-data': initData }
       });
-      setTransactions(response.data.transactions || []);
+      setTransactions(response.data?.transactions || []);
     } catch (error) {
       console.error('Failed to fetch transactions:', error);
+      setTransactions([]);
     }
   };
 
