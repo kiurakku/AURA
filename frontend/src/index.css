@@ -97,6 +97,12 @@ body {
   box-shadow: var(--shadow-soft);
 }
 
+/* Ensure game cards inherit border-radius */
+.glass-card.game-card {
+  border-radius: 24px !important;
+  overflow: hidden;
+}
+
 /* Neon glow effect */
 .neon-glow {
   box-shadow: 0 0 10px var(--accent-purple),
