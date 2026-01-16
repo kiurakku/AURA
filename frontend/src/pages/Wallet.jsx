@@ -160,15 +160,28 @@ function Wallet({ user, initData, onBalanceUpdate }) {
           <span className="balance-value balance-text">
             {formatCurrency(convertCurrency(user?.balance || 0, 'USDT', selectedCurrency), selectedCurrency)}
           </span>
-          <span className="balance-currency">{selectedCurrency} {getCurrencySymbol(selectedCurrency)}</span>
-        </div>
-        {/* Currency Converter */}
-        <div className="currency-converter" style={{ marginTop: '12px', padding: '12px', background: 'rgba(138, 43, 226, 0.1)', borderRadius: '12px', fontSize: '12px' }}>
-          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', justifyContent: 'center' }}>
-            <span>USDT: {formatCurrency(user?.balance || 0, 'USDT')}</span>
-            <span>TON: {formatCurrency(convertCurrency(user?.balance || 0, 'USDT', 'TON'), 'TON')}</span>
-            <span>BTC: {formatCurrency(convertCurrency(user?.balance || 0, 'USDT', 'BTC'), 'BTC')}</span>
-          </div>
+          <span className="balance-currency-icon">
+            <img 
+              src={currencies.find(c => c.id === selectedCurrency)?.icon || '/materials/icons/usdt.png'} 
+              alt={selectedCurrency}
+              onError={(e) => {
+                if (e.target.nextSibling) {
+                  e.target.style.display = 'none';
+                  e.target.nextSibling.style.display = 'inline-block';
+                }
+              }}
+              onLoad={(e) => {
+                e.target.style.display = 'block';
+                if (e.target.nextSibling) {
+                  e.target.nextSibling.style.display = 'none';
+                }
+              }}
+            />
+            <span className="balance-currency-icon-fallback" style={{ display: 'none', fontSize: '24px' }}>
+              {getCurrencySymbol(selectedCurrency)}
+            </span>
+          </span>
+          <span className="balance-currency">{selectedCurrency}</span>
         </div>
         {user?.bonus_balance > 0 && (
           <div className="bonus-balance">

@@ -59,7 +59,7 @@
 
 .balance-main {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   justify-content: center;
   gap: 12px;
   margin-bottom: 16px;
@@ -72,6 +72,23 @@
   font-weight: 800;
   line-height: 1;
   font-family: var(--font-family);
+}
+
+.balance-currency-icon {
+  display: inline-flex;
+  align-items: center;
+  width: 32px;
+  height: 32px;
+}
+
+.balance-currency-icon img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.balance-currency-icon-fallback {
+  font-size: 24px;
 }
 
 .balance-currency {
@@ -235,9 +252,18 @@
   color: var(--text-primary);
 }
 
+.currency-balance {
+  font-size: var(--font-small);
+  color: var(--text-secondary);
+  font-weight: 500;
+  margin-top: 4px;
+}
+
 .currency-network {
   font-size: var(--font-small);
   color: var(--text-secondary);
+  opacity: 0.7;
+  margin-top: 2px;
 }
 
 /* Withdraw Section */
