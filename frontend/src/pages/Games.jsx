@@ -263,44 +263,54 @@ function Games({ user, initData, onBalanceUpdate }) {
   };
 
   const filteredAndSortedGames = useMemo(() => {
-    let filtered = [...allGames];
-
-    // Пошук
-    if (searchQuery) {
-      filtered = filtered.filter(game => 
-        game.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        game.description.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-    }
-
-    // Категорія
-    if (activeCategory === 'favorites') {
-      filtered = filtered.filter(game => favorites.includes(game.id));
-    } else if (activeCategory !== 'all') {
-      filtered = filtered.filter(game => game.category === activeCategory);
-    }
-
-    // Тип гри (соло/мультиплеєр)
-    if (gameType !== 'all') {
-      filtered = filtered.filter(game => game.gameType === gameType);
-    }
-
-    // Сортування
-    filtered.sort((a, b) => {
-      switch (sortBy) {
-        case 'popular':
-          return b.popularity - a.popularity;
-        case 'new':
-          return b.isNew === a.isNew ? 0 : b.isNew ? -1 : 1;
-        case 'name':
-          return a.name.localeCompare(b.name);
-        default:
-          return 0;
+    try {
+      if (!allGames || !Array.isArray(allGames)) {
+        return [];
       }
-    });
+      
+      let filtered = [...allGames];
 
-    return filtered;
-  }, [activeCategory, gameType, sortBy, searchQuery, favorites]);
+      // Пошук
+      if (searchQuery) {
+        filtered = filtered.filter(game => 
+          game && game.name && game.description &&
+          (game.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          game.description.toLowerCase().includes(searchQuery.toLowerCase()))
+        );
+      }
+
+      // Категорія
+      if (activeCategory === 'favorites') {
+        filtered = filtered.filter(game => game && favorites.includes(game.id));
+      } else if (activeCategory !== 'all') {
+        filtered = filtered.filter(game => game && game.category === activeCategory);
+      }
+
+      // Тип гри (соло/мультиплеєр)
+      if (gameType !== 'all') {
+        filtered = filtered.filter(game => game && game.gameType === gameType);
+      }
+
+      // Сортування
+      filtered.sort((a, b) => {
+        if (!a || !b) return 0;
+        switch (sortBy) {
+          case 'popular':
+            return (b.popularity || 0) - (a.popularity || 0);
+          case 'new':
+            return b.isNew === a.isNew ? 0 : b.isNew ? -1 : 1;
+          case 'name':
+            return (a.name || '').localeCompare(b.name || '');
+          default:
+            return 0;
+        }
+      });
+
+      return filtered;
+    } catch (error) {
+      return [];
+    }
+  }, [activeCategory, gameType, sortBy, searchQuery, favorites, allGames]);
 
   const handlePlayGame = (game) => {
     if (!game.isPlayable) {

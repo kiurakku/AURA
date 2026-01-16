@@ -25,9 +25,11 @@ function Profile({ user, initData }) {
   const [activeTab, setActiveTab] = useState('stats');
 
   useEffect(() => {
-    fetchUserRank();
-    fetchCashbackInfo();
-  }, []);
+    if (initData) {
+      fetchUserRank();
+      fetchCashbackInfo();
+    }
+  }, [initData]);
 
   useEffect(() => {
     if (userRank) {
