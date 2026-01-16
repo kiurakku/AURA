@@ -148,9 +148,132 @@ export async function initBot() {
       '📖 *Доступні команди:*\n\n' +
       '/start - Почати роботу з ботом\n' +
       '/bonus - Отримати щоденний бонус\n' +
+      '/balance - Перевірити баланс\n' +
+      '/referral - Отримати реферальне посилання\n' +
+      '/stats - Ваша статистика\n' +
       '/help - Показати цю довідку\n\n' +
       '🎰 Для гри використовуйте кнопку "Відкрити казино"',
       { parse_mode: 'Markdown' }
+    );
+  });
+
+  // Balance command
+  bot.onText(/\/balance/, async (msg) => {
+    const chatId = msg.chat.id;
+    const userId = msg.from.id;
+
+    const user = db.prepare('SELECT * FROM users WHERE telegram_id = ?').get(userId);
+    if (!user) {
+      return bot.sendMessage(chatId, 'Спочатку виконайте /start');
+    }
+
+    const keyboard = {
+      inline_keyboard: [[
+        {
+          text: '🎰 Відкрити казино',
+          web_app: { url: webappUrl }
+        }
+      ]]
+    };
+
+    bot.sendMessage(chatId,
+      '💰 *Ваш баланс:*\n\n' +
+      `💵 Основний: ${(user.balance || 0).toFixed(2)} USDT\n` +
+      `🎁 Бонусний: ${(user.bonus_balance || 0).toFixed(2)} USDT\n` +
+      `📊 Загальний: ${((user.balance || 0) + (user.bonus_balance || 0)).toFixed(2)} USDT\n\n` +
+      `🏆 Ранг: ${user.rank_name || 'Newbie'}\n` +
+      `📈 Поставлено: ${(user.total_wagered || 0).toFixed(2)} USDT`,
+      {
+        parse_mode: 'Markdown',
+        reply_markup: keyboard
+      }
+    );
+  });
+
+  // Referral command
+  bot.onText(/\/referral/, async (msg) => {
+    const chatId = msg.chat.id;
+    const userId = msg.from.id;
+
+    const user = db.prepare('SELECT * FROM users WHERE telegram_id = ?').get(userId);
+    if (!user) {
+      return bot.sendMessage(chatId, 'Спочатку виконайте /start');
+    }
+
+    const referralLink = `https://t.me/${bot.options.username || 'your_bot'}?start=ref_${user.referral_code}`;
+    const referrals = db.prepare('SELECT COUNT(*) as count FROM referrals WHERE referrer_id = ?').get(userId);
+    const referralCount = referrals?.count || 0;
+
+    const keyboard = {
+      inline_keyboard: [[
+        {
+          text: '📋 Скопіювати посилання',
+          callback_data: `copy_ref_${user.referral_code}`
+        },
+        {
+          text: '📤 Поділитися',
+          switch_inline_query: `Приєднуйся до AURA Casino та отримуй бонуси! ${referralLink}`
+        }
+      ], [
+        {
+          text: '🎰 Відкрити казино',
+          web_app: { url: webappUrl }
+        }
+      ]]
+    };
+
+    bot.sendMessage(chatId,
+      '👥 *Реферальна програма*\n\n' +
+      `🔗 Ваше посилання:\n\`${referralLink}\`\n\n` +
+      `👤 Запрошено друзів: ${referralCount}\n` +
+      `💰 Зароблено: ${(user.bonus_balance || 0).toFixed(2)} USDT\n\n` +
+      '💡 За кожного друга, який грає, ви отримуєте бонус!',
+      {
+        parse_mode: 'Markdown',
+        reply_markup: keyboard
+      }
+    );
+  });
+
+  // Stats command
+  bot.onText(/\/stats/, async (msg) => {
+    const chatId = msg.chat.id;
+    const userId = msg.from.id;
+
+    const user = db.prepare('SELECT * FROM users WHERE telegram_id = ?').get(userId);
+    if (!user) {
+      return bot.sendMessage(chatId, 'Спочатку виконайте /start');
+    }
+
+    const games = db.prepare('SELECT * FROM games WHERE user_id = ?').all(user.id);
+    const totalGames = games.length;
+    const totalWins = games.filter(g => g.win_amount > 0).length;
+    const totalWagered = user.total_wagered || 0;
+    const totalWon = games.reduce((sum, g) => sum + (g.win_amount || 0), 0);
+    const winRate = totalGames > 0 ? ((totalWins / totalGames) * 100).toFixed(1) : 0;
+
+    const keyboard = {
+      inline_keyboard: [[
+        {
+          text: '🎰 Грати зараз',
+          web_app: { url: webappUrl }
+        }
+      ]]
+    };
+
+    bot.sendMessage(chatId,
+      '📊 *Ваша статистика:*\n\n' +
+      `🎮 Всього ігор: ${totalGames}\n` +
+      `🏆 Виграшів: ${totalWins} (${winRate}%)\n` +
+      `💰 Поставлено: ${totalWagered.toFixed(2)} USDT\n` +
+      `🎁 Виграно: ${totalWon.toFixed(2)} USDT\n` +
+      `📈 Чистий прибуток: ${(totalWon - totalWagered).toFixed(2)} USDT\n\n` +
+      `🏆 Ранг: ${user.rank_name || 'Newbie'}\n` +
+      `⭐ XP: ${user.total_xp || 0}`,
+      {
+        parse_mode: 'Markdown',
+        reply_markup: keyboard
+      }
     );
   });
 
@@ -204,9 +327,11 @@ export async function initBot() {
   // Handle callback queries
   bot.on('callback_query', (query) => {
     const chatId = query.message.chat.id;
+    const data = query.data;
+    
     bot.answerCallbackQuery(query.id);
     
-    if (query.data === 'open_webapp') {
+    if (data === 'open_webapp') {
       const keyboard = {
         inline_keyboard: [[
           {
@@ -218,6 +343,22 @@ export async function initBot() {
       bot.sendMessage(chatId, 'Натисніть кнопку нижче, щоб відкрити казино:', {
         reply_markup: keyboard
       });
+    } else if (data.startsWith('copy_ref_')) {
+      const refCode = data.replace('copy_ref_', '');
+      const referralLink = `https://t.me/${bot.options.username || 'your_bot'}?start=ref_${refCode}`;
+      bot.sendMessage(chatId, 
+        `📋 *Посилання скопійовано!*\n\n` +
+        `Ваше реферальне посилання:\n\`${referralLink}\`\n\n` +
+        `Поділіться ним з друзями!`,
+        { parse_mode: 'Markdown' }
+      );
+    } else if (data.startsWith('copy_code_')) {
+      const code = data.replace('copy_code_', '');
+      bot.sendMessage(chatId,
+        `📋 *Код скопійовано!*\n\n` +
+        `Код підтвердження:\n\`${code}\``,
+        { parse_mode: 'Markdown' }
+      );
     }
   });
 
