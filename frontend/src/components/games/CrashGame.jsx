@@ -55,7 +55,7 @@ function CrashGame({ initData, onBack, onBalanceUpdate, botMode = false }) {
       }
       
       // Start game on server (or bot mode)
-        const endpoint = botMode ? '/api/games/crash/bot' : '/api/api/games/crash';
+        const endpoint = botMode ? '/api/games/crash/bot' : '/api/games/crash';
       const response = await api.post(endpoint, {
         bet_amount: botMode ? 0 : betAmount,
         auto_cashout: autoCashout,
