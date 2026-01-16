@@ -11,6 +11,7 @@ function Referral({ user, initData }) {
   }, []);
 
   const fetchReferralInfo = async () => {
+    if (!initData) return;
     try {
       const response = await api.get('/referral', {
         headers: { 'x-telegram-init-data': initData }
@@ -18,6 +19,7 @@ function Referral({ user, initData }) {
       setReferralInfo(response.data);
     } catch (error) {
       console.error('Failed to fetch referral info:', error);
+      setReferralInfo(null);
     }
   };
 

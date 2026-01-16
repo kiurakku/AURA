@@ -36,11 +36,12 @@ function Profile({ user, initData }) {
   }, [userRank]);
 
   const fetchUserRank = async () => {
+    if (!initData) return;
     try {
       const response = await api.get('/profile', {
         headers: { 'x-telegram-init-data': initData }
       });
-      if (response.data.user) {
+      if (response.data?.user) {
         setUserRank({
           rank_id: response.data.user.rank_id || 1,
           rank_name: response.data.user.rank_name || 'Newbie',
@@ -50,6 +51,7 @@ function Profile({ user, initData }) {
       }
     } catch (error) {
       console.error('Failed to fetch user rank:', error);
+      setUserRank(null);
     }
   };
 
@@ -65,11 +67,12 @@ function Profile({ user, initData }) {
   };
 
   const fetchGameHistory = async () => {
+    if (!initData) return;
     try {
       const response = await api.get('/games/history?limit=50', {
         headers: { 'x-telegram-init-data': initData }
       });
-      const games = response.data.games || [];
+      const games = response.data?.games || [];
       setGameHistory(games);
 
       const totalGames = games.length;
