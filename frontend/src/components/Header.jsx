@@ -7,7 +7,9 @@ function Header({ user, balance, onDeposit }) {
       <div className="header-content">
         <div className="user-info">
           {user?.photo_url ? (
-            <img src={user.photo_url} alt={user.first_name} className="avatar" />
+            <div className="avatar-wrapper">
+              <img src={user.photo_url} alt={user.first_name} className="avatar" />
+            </div>
           ) : (
             <div className="avatar-placeholder">
               {user?.first_name?.[0] || 'U'}
