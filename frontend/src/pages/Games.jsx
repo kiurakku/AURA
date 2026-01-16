@@ -26,11 +26,11 @@ function Games({ user, initData, onBalanceUpdate }) {
   });
 
   const categories = [
-    { id: 'all', name: 'Усі', icon: '🎮' },
-    { id: 'slots', name: 'Слоти', icon: '🎰' },
-    { id: 'table', name: 'Настільні', icon: '🃏' },
-    { id: 'quick', name: 'Швидкі', icon: '⚡' },
-    { id: 'favorites', name: 'Вибране', icon: '⭐' }
+    { id: 'all', name: t('games.all'), icon: '🎮' },
+    { id: 'slots', name: t('games.slots'), icon: '🎰' },
+    { id: 'table', name: t('games.table'), icon: '🃏' },
+    { id: 'quick', name: t('games.quick'), icon: '⚡' },
+    { id: 'favorites', name: t('games.favorites'), icon: '⭐' }
   ];
 
   const allGames = [
@@ -314,7 +314,7 @@ function Games({ user, initData, onBalanceUpdate }) {
 
   const handlePlayGame = (game) => {
     if (!game.isPlayable) {
-      alert('Гра в розробці. Скоро буде доступна!');
+      alert(t('games.gameInProgress'));
       return;
     }
 
@@ -352,7 +352,7 @@ function Games({ user, initData, onBalanceUpdate }) {
           <input
             type="text"
             className="search-input"
-            placeholder="Пошук ігор..."
+            placeholder={t('games.searchPlaceholder')}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
@@ -370,7 +370,7 @@ function Games({ user, initData, onBalanceUpdate }) {
           onClick={() => setShowFilters(!showFilters)}
         >
           <span>⚙️</span>
-          <span>Фільтри</span>
+          <span>{t('games.filters')}</span>
         </button>
       </div>
 
@@ -378,39 +378,39 @@ function Games({ user, initData, onBalanceUpdate }) {
       {showFilters && (
         <div className="games-filters glass-card">
           <div className="filter-group">
-            <label className="filter-label">Тип гри</label>
+            <label className="filter-label">{t('games.gameType')}</label>
             <div className="filter-buttons">
               <button
                 className={`filter-btn ${gameType === 'all' ? 'active' : ''}`}
                 onClick={() => setGameType('all')}
               >
-                Усі
+                {t('games.all')}
               </button>
               <button
                 className={`filter-btn ${gameType === 'solo' ? 'active' : ''}`}
                 onClick={() => setGameType('solo')}
               >
-                🎯 Соло
+                🎯 {t('games.solo')}
               </button>
               <button
                 className={`filter-btn ${gameType === 'multiplayer' ? 'active' : ''}`}
                 onClick={() => setGameType('multiplayer')}
               >
-                👥 Мультиплеєр
+                👥 {t('games.multiplayer')}
               </button>
             </div>
           </div>
 
           <div className="filter-group">
-            <label className="filter-label">Сортування</label>
+            <label className="filter-label">{t('games.sortBy')}</label>
             <select 
               className="filter-select"
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
             >
-              <option value="popular">Популярність</option>
-              <option value="new">Нові спочатку</option>
-              <option value="name">За назвою</option>
+              <option value="popular">{t('games.popular')}</option>
+              <option value="new">{t('games.new')}</option>
+              <option value="name">{t('games.name')}</option>
             </select>
           </div>
         </div>
@@ -435,7 +435,7 @@ function Games({ user, initData, onBalanceUpdate }) {
       {/* Статистика фільтрів */}
       <div className="games-stats">
         <span className="games-count">
-          Знайдено: <strong>{filteredAndSortedGames?.length || 0}</strong> ігор
+          {t('games.foundGames', { count: filteredAndSortedGames?.length || 0 })}
         </span>
         {(gameType !== 'all' || searchQuery) && (
           <button 
@@ -446,7 +446,7 @@ function Games({ user, initData, onBalanceUpdate }) {
               setShowFilters(false);
             }}
           >
-            Очистити фільтри
+            {t('games.clearFilters')}
           </button>
         )}
       </div>
@@ -488,7 +488,7 @@ function Games({ user, initData, onBalanceUpdate }) {
                 <div className="game-info">
                   <div className="game-stats">
                     <span className="stat-item">
-                      <span className="stat-label">Популярність:</span>
+                      <span className="stat-label">{t('games.popularity')}:</span>
                       <div className="popularity-bar">
                         <div 
                           className="popularity-fill" 
@@ -497,7 +497,7 @@ function Games({ user, initData, onBalanceUpdate }) {
                       </div>
                     </span>
                     <span className="stat-item">
-                      <span className="stat-label">Ставка:</span>
+                      <span className="stat-label">{t('games.bet')}:</span>
                       <span className="stat-value">{game.minBet || 0} - {game.maxBet || 0} USDT</span>
                     </span>
                   </div>
@@ -507,7 +507,7 @@ function Games({ user, initData, onBalanceUpdate }) {
                   className={`btn ${game.isPlayable ? 'btn-primary' : 'btn-secondary'} play-btn`}
                   onClick={() => handlePlayGame(game)}
                 >
-                  {game.isPlayable ? '▶️ Грати' : '⏳ Скоро'}
+                  {game.isPlayable ? `▶️ ${t('games.play')}` : `⏳ ${t('games.soon')}`}
                 </button>
               </div>
               <div className="game-card-glow"></div>

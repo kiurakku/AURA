@@ -30,21 +30,21 @@ function Wallet({ user, initData, onBalanceUpdate }) {
 
   const handleDeposit = () => {
     // TODO: Integrate CryptoPay or TON Connect
-    alert('Функція депозиту буде доступна після налаштування платіжного шлюзу');
+    alert(t('wallet.depositSoon'));
   };
 
   const handleWithdraw = async () => {
     if (!withdrawAmount || !withdrawAddress) {
-      alert('Заповніть всі поля');
+      alert(t('wallet.fillAllFields'));
       return;
     }
 
     setLoading(true);
     try {
       // TODO: Implement withdraw API
-      alert('Функція виводу буде доступна після налаштування платіжного шлюзу');
+      alert(t('wallet.withdrawSoon'));
     } catch (error) {
-      alert(error.response?.data?.error || 'Помилка виводу');
+      alert(error.response?.data?.error || t('wallet.withdrawError'));
     } finally {
       setLoading(false);
     }

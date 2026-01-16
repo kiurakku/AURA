@@ -39,7 +39,20 @@ const translations = {
       quick: 'Швидкі',
       favorites: 'Вибране',
       play: 'Грати',
-      empty: 'Немає ігор у цій категорії'
+      empty: 'Немає ігор у цій категорії',
+      search: 'Пошук',
+      filters: 'Фільтри',
+      sortBy: 'Сортувати за',
+      popular: 'Популярність',
+      new: 'Нові',
+      name: 'Назва',
+      foundGames: 'Знайдено: {count} ігор',
+      clearFilters: 'Очистити фільтри',
+      soon: 'Скоро',
+      gameInProgress: 'Гра в розробці. Скоро буде доступна!',
+      popularity: 'Популярність',
+      bet: 'Ставка',
+      multiplayer: 'Мультиплеєр'
     },
     // Wallet
     wallet: {
