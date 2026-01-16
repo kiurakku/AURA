@@ -395,6 +395,7 @@ router.post('/games/mines', validateTelegramAuth, async (req, res) => {
           success: true,
           won: false,
           hit_mine: true,
+          mine_positions: minePositions, // Send mine positions so client can display them
           win_amount: 0,
           new_balance: currentUser.balance || 0
         });

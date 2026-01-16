@@ -31,6 +31,7 @@ function MinesGame({ initData, onBack, onBalanceUpdate }) {
       setGameId(data.game_id);
       setIsPlaying(true);
       setRevealed(new Set());
+      // Mines positions are stored on server, we don't need to store them on client
       setMines([]);
       setGameResult(null);
       onBalanceUpdate();
@@ -62,6 +63,12 @@ function MinesGame({ initData, onBack, onBalanceUpdate }) {
         setIsPlaying(false);
         setGameResult({ won: false, multiplier: 0 });
         setRevealed(prev => new Set([...prev, index]));
+        // Set all mine positions from server
+        if (data.mine_positions) {
+          setMines(data.mine_positions);
+        } else {
+          setMines([index]); // Fallback: at least show the hit mine
+        }
         onBalanceUpdate();
         alert('💣 Ви натрапили на міну! Гра закінчена.');
         return;
@@ -123,16 +130,17 @@ function MinesGame({ initData, onBack, onBalanceUpdate }) {
     for (let i = 0; i < gridSize; i++) {
       const isRevealed = revealed.has(i);
       const isGameOver = gameResult && !gameResult.won;
+      const isMine = mines.includes(i);
       
       cells.push(
         <button
           key={i}
-          className={`mine-cell ${isRevealed ? 'revealed' : ''} ${isGameOver && mines.includes(i) ? 'mine' : ''}`}
+          className={`mine-cell ${isRevealed ? 'revealed' : ''} ${isMine ? 'mine' : ''}`}
           onClick={() => revealCell(i)}
           disabled={!isPlaying || isRevealed || loading || gameResult}
         >
-          {isRevealed && !mines.includes(i) && '💎'}
-          {isGameOver && mines.includes(i) && '💣'}
+          {isRevealed && !isMine && '💎'}
+          {isMine && '💣'}
         </button>
       );
     }
