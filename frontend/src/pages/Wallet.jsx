@@ -28,23 +28,82 @@ function Wallet({ user, initData, onBalanceUpdate }) {
     }
   };
 
-  const handleDeposit = () => {
-    // TODO: Integrate CryptoPay or TON Connect
-    alert(t('wallet.depositSoon'));
-  };
-
-  const handleWithdraw = async () => {
-    if (!withdrawAmount || !withdrawAddress) {
-      alert(t('wallet.fillAllFields'));
+  const handleDeposit = async () => {
+    const amount = prompt(t('wallet.enterDepositAmount') || 'Введіть суму депозиту (мінімум 1 USDT):');
+    if (!amount || parseFloat(amount) < 1) {
+      alert(t('wallet.invalidAmount') || 'Невірна сума. Мінімум 1 USDT');
       return;
     }
 
     setLoading(true);
     try {
-      // TODO: Implement withdraw API
-      alert(t('wallet.withdrawSoon'));
+      const response = await api.post('/payments/deposit', {
+        amount: parseFloat(amount),
+        currency: 'USDT'
+      }, {
+        headers: { 'x-telegram-init-data': initData }
+      });
+
+      if (response.data.success) {
+        // Open payment URL
+        if (window.Telegram?.WebApp) {
+          window.Telegram.WebApp.openLink(response.data.pay_url);
+        } else {
+          window.open(response.data.pay_url, '_blank');
+        }
+
+        // Poll for payment status
+        const checkStatus = setInterval(async () => {
+          try {
+            const statusResponse = await api.get(`/payments/deposit/${response.data.invoice_id}/status`, {
+              headers: { 'x-telegram-init-data': initData }
+            });
+
+            if (statusResponse.data.status === 'paid') {
+              clearInterval(checkStatus);
+              alert(t('wallet.depositSuccess') || 'Депозит успішно поповнено!');
+              onBalanceUpdate();
+              fetchTransactions();
+            }
+          } catch (err) {
+            console.error('Status check error:', err);
+          }
+        }, 3000);
+
+        // Stop checking after 5 minutes
+        setTimeout(() => clearInterval(checkStatus), 300000);
+      }
     } catch (error) {
-      alert(error.response?.data?.error || t('wallet.withdrawError'));
+      alert(error.response?.data?.error || t('wallet.depositError') || 'Помилка створення депозиту');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleWithdraw = async () => {
+    if (!withdrawAmount || parseFloat(withdrawAmount) < 1) {
+      alert(t('wallet.invalidAmount') || 'Невірна сума. Мінімум 1 USDT');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const response = await api.post('/payments/withdraw', {
+        amount: parseFloat(withdrawAmount),
+        currency: selectedCurrency
+      }, {
+        headers: { 'x-telegram-init-data': initData }
+      });
+
+      if (response.data.success) {
+        alert(t('wallet.withdrawRequestCreated') || 'Запит на виведення створено. Очікуйте підтвердження адміністратора.');
+        setWithdrawAmount('');
+        setWithdrawAddress('');
+        onBalanceUpdate();
+        fetchTransactions();
+      }
+    } catch (error) {
+      alert(error.response?.data?.error || t('wallet.withdrawError') || 'Помилка створення запиту на виведення');
     } finally {
       setLoading(false);
     }

@@ -50,11 +50,23 @@ function App() {
       tg.expand();
       
       const data = tg.initData;
+      
+      if (!data) {
+        console.error('❌ Telegram WebApp initData is empty!');
+        setLoading(false);
+        return;
+      }
+      
+      // Store initData globally for API interceptor
+      window.__TELEGRAM_INIT_DATA__ = data;
       setInitData(data);
+      
+      console.log('✅ Telegram WebApp initialized, initData length:', data.length);
       
       // Authenticate user
       authenticateUser(data);
     } else {
+      console.warn('⚠️ Telegram WebApp not available - running in dev mode');
       // Development mode - use mock data
       setLoading(false);
     }
@@ -63,11 +75,39 @@ function App() {
   const authenticateUser = async (data) => {
     try {
       setLoading(true);
-      const response = await api.post('/auth', { initData: data });
-      setUser(response.data.user);
-      await fetchBalance(data);
+      console.log('🔐 Authenticating user...');
+      console.log('📤 Sending request to /api/auth');
+      console.log('📋 initData length:', data?.length || 0);
+      
+      const response = await api.post('/auth', { initData: data }, {
+        headers: { 'x-telegram-init-data': data }
+      });
+      
+      console.log('📥 Auth response:', response.data);
+      
+      if (response.data.success && response.data.user) {
+        setUser(response.data.user);
+        console.log('✅ User authenticated:', response.data.user.first_name);
+        await fetchBalance(data);
+      } else {
+        console.error('❌ Auth failed:', response.data);
+        if (window.Telegram?.WebApp) {
+          window.Telegram.WebApp.showAlert('Помилка авторизації: ' + (response.data.error || 'Невідома помилка'));
+        }
+      }
     } catch (error) {
-      // Auth error - continue without auth in dev mode
+      console.error('❌ Auth error:', {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+        url: error.config?.url
+      });
+      
+      // Show error to user in production
+      if (window.Telegram?.WebApp) {
+        const errorMsg = error.response?.data?.error || error.message || 'Помилка авторизації';
+        window.Telegram.WebApp.showAlert(`Помилка авторизації: ${errorMsg}. Перезавантажте додаток.`);
+      }
     } finally {
       setLoading(false);
     }

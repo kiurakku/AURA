@@ -11,6 +11,7 @@ import apiRoutes from './routes/api.js';
 import adminRoutes from './routes/admin.js';
 import gamesRoutes from './routes/games.js';
 import onlineGamesRoutes from './routes/online-games.js';
+import paymentsRoutes from './routes/payments.js';
 import { validateTelegramWebApp, parseUserData, isAuthDataRecent } from './utils/telegram-validator.js';
 
 dotenv.config();
@@ -30,22 +31,33 @@ const io = new Server(httpServer, {
 
 const PORT = process.env.PORT || 3000;
 
-// Middleware
-app.use(cors());
+// Middleware - CORS with proper headers for Telegram WebApp
+app.use(cors({
+  origin: process.env.FRONTEND_URL || "*",
+  credentials: true,
+  allowedHeaders: ['Content-Type', 'x-telegram-init-data', 'Authorization'],
+  exposedHeaders: ['x-telegram-init-data']
+}));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Static files - serve frontend build
-app.use(express.static(join(__dirname, '../public')));
+// In Docker, server.js is in /app, so public is at ./public
+// In local dev, server.js is in backend/, so public is at ../public
+const publicPath = join(__dirname, __dirname === '/app' ? './public' : '../public');
+console.log('📁 Public directory:', publicPath, '(__dirname:', __dirname, ')');
+app.use(express.static(publicPath));
 
 // Materials
-app.use('/materials', express.static(join(__dirname, '../public/materials')));
+const materialsPath = join(publicPath, 'materials');
+app.use('/materials', express.static(materialsPath));
 
 // API Routes
 app.use('/api', apiRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/games', gamesRoutes);
 app.use('/api/online-games', onlineGamesRoutes);
+app.use('/api/payments', paymentsRoutes);
 
 // Set io in online-games routes
 import { setIO } from './routes/online-games.js';
@@ -62,18 +74,41 @@ app.get('/health', (req, res) => {
 app.get('*', (req, res, next) => {
   // Skip API routes
   if (req.path.startsWith('/api')) {
-    return next();
+    return next(); // Let Express handle 404 for API routes
   }
   // Skip health check
   if (req.path === '/health') {
     return next();
   }
-  // Serve index.html for all other routes
-  res.sendFile(join(__dirname, '../public/index.html'), (err) => {
+  // Skip materials
+  if (req.path.startsWith('/materials')) {
+    return next();
+  }
+  // Serve index.html for all other GET routes
+  // In Docker, server.js is in /app, so public is at ./public
+  // In local dev, server.js is in backend/, so public is at ../public
+  const indexPath = join(__dirname, __dirname === '/app' ? './public/index.html' : '../public/index.html');
+  console.log('📄 Serving index.html from:', indexPath);
+  res.sendFile(indexPath, (err) => {
     if (err) {
-      res.status(404).json({ error: 'Not Found' });
+      console.error('❌ Error serving index.html:', {
+        error: err.message,
+        path: indexPath,
+        __dirname: __dirname,
+        code: err.code
+      });
+      res.status(404).json({ error: 'Not Found', details: err.message });
     }
   });
+});
+
+// 404 handler for all unmatched routes (including API)
+app.use((req, res) => {
+  if (req.path.startsWith('/api')) {
+    res.status(404).json({ error: 'API endpoint not found', path: req.path });
+  } else {
+    res.status(404).json({ error: 'Not Found' });
+  }
 });
 
 // WebSocket authentication middleware

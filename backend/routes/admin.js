@@ -108,10 +108,35 @@ router.post('/withdrawals/:id/approve', isAdmin, async (req, res) => {
       return res.status(404).json({ error: 'Transaction not found' });
     }
 
-    // Update transaction status
-    db.prepare('UPDATE transactions SET status = ? WHERE id = ?').run('completed', transaction.id);
+    // Process withdrawal via Crypto Pay
+    const { transferFunds } = await import('../utils/crypto-pay.js');
+    const metadata = JSON.parse(transaction.metadata || '{}');
     
-    res.json({ success: true, message: 'Withdrawal approved' });
+    // Get user telegram_id
+    const user = db.prepare('SELECT telegram_id FROM users WHERE id = ?').get(transaction.user_id);
+    if (!user || !user.telegram_id) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    const transferResult = await transferFunds(
+      user.telegram_id.toString(),
+      transaction.amount,
+      `Withdrawal ${transaction.amount} ${transaction.currency} from AURA Casino`
+    );
+
+    if (transferResult.success) {
+      db.prepare('UPDATE transactions SET status = ?, metadata = ? WHERE id = ?')
+        .run('completed', JSON.stringify({ ...metadata, transfer_id: transferResult.transfer_id }), transaction.id);
+      res.json({ success: true, message: 'Withdrawal processed', transfer_id: transferResult.transfer_id });
+    } else {
+      // Refund balance if transfer failed
+      const userBalance = db.prepare('SELECT balance FROM users WHERE id = ?').get(transaction.user_id);
+      if (userBalance) {
+        const newBalance = (userBalance.balance || 0) + transaction.amount;
+        db.prepare('UPDATE users SET balance = ? WHERE id = ?').run(newBalance, transaction.user_id);
+      }
+      res.status(500).json({ error: transferResult.error });
+    }
   } catch (error) {
     console.error('Approve withdrawal error:', error);
     res.status(500).json({ error: 'Failed to approve withdrawal' });
@@ -142,6 +167,121 @@ router.post('/withdrawals/:id/reject', isAdmin, async (req, res) => {
   } catch (error) {
     console.error('Reject withdrawal error:', error);
     res.status(500).json({ error: 'Failed to reject withdrawal' });
+  }
+});
+
+// Add balance to user (admin only)
+router.post('/users/:userId/balance', isAdmin, async (req, res) => {
+  try {
+    if (!db) db = await getDatabase();
+    const { userId } = req.params;
+    const { amount, currency = 'USDT', type = 'balance', description } = req.body;
+
+    if (!amount || amount <= 0) {
+      return res.status(400).json({ error: 'Invalid amount' });
+    }
+
+    const user = db.prepare('SELECT * FROM users WHERE id = ? OR telegram_id = ?').get(parseInt(userId), parseInt(userId));
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    let newBalance;
+    if (type === 'bonus') {
+      newBalance = (user.bonus_balance || 0) + parseFloat(amount);
+      db.prepare('UPDATE users SET bonus_balance = ? WHERE id = ?').run(newBalance, user.id);
+    } else {
+      newBalance = (user.balance || 0) + parseFloat(amount);
+      db.prepare('UPDATE users SET balance = ? WHERE id = ?').run(newBalance, user.id);
+    }
+
+    // Create transaction record
+    db.prepare(`
+      INSERT INTO transactions (user_id, type, amount, currency, status, description, metadata)
+      VALUES (?, 'admin_bonus', ?, ?, 'completed', ?, ?)
+    `).run(
+      user.id,
+      parseFloat(amount),
+      currency,
+      description || `Admin bonus: ${amount} ${currency} (${type})`,
+      JSON.stringify({
+        admin_id: req.admin.id,
+        admin_username: req.admin.username,
+        bonus_type: type,
+        added_at: new Date().toISOString()
+      })
+    );
+
+    // Get updated user data
+    const updatedUser = db.prepare('SELECT * FROM users WHERE id = ?').get(user.id);
+
+    res.json({
+      success: true,
+      message: `Balance updated successfully`,
+      user: {
+        id: updatedUser.id,
+        telegram_id: updatedUser.telegram_id,
+        username: updatedUser.username,
+        balance: updatedUser.balance || 0,
+        bonus_balance: updatedUser.bonus_balance || 0
+      }
+    });
+  } catch (error) {
+    console.error('Add balance error:', error);
+    res.status(500).json({ error: 'Failed to add balance' });
+  }
+});
+
+// Get user by ID or Telegram ID
+router.get('/users/:userId', isAdmin, async (req, res) => {
+  try {
+    if (!db) db = await getDatabase();
+    const { userId } = req.params;
+    
+    const user = db.prepare('SELECT * FROM users WHERE id = ? OR telegram_id = ?').get(parseInt(userId), parseInt(userId));
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // Get user transactions
+    const transactions = db.prepare('SELECT * FROM transactions WHERE user_id = ? ORDER BY created_at DESC LIMIT 50').all(user.id);
+    
+    // Get user games
+    const games = db.prepare('SELECT * FROM games WHERE user_id = ? ORDER BY created_at DESC LIMIT 50').all(user.id);
+
+    res.json({
+      user,
+      transactions,
+      games: games.map(g => ({
+        id: g.id,
+        game_type: g.game_type,
+        bet_amount: g.bet_amount,
+        win_amount: g.win_amount,
+        created_at: g.created_at
+      }))
+    });
+  } catch (error) {
+    console.error('Get user error:', error);
+    res.status(500).json({ error: 'Failed to get user' });
+  }
+});
+
+// Search users
+router.get('/users/search/:query', isAdmin, async (req, res) => {
+  try {
+    if (!db) db = await getDatabase();
+    const { query } = req.params;
+    
+    const users = db.prepare(`
+      SELECT * FROM users 
+      WHERE telegram_id LIKE ? OR username LIKE ? OR first_name LIKE ?
+      LIMIT 20
+    `).all(`%${query}%`, `%${query}%`, `%${query}%`);
+
+    res.json({ users });
+  } catch (error) {
+    console.error('Search users error:', error);
+    res.status(500).json({ error: 'Failed to search users' });
   }
 });
 

@@ -26,28 +26,44 @@ function validateTelegramAuth(req, res, next) {
   const initData = req.headers['x-telegram-init-data'] || req.body.initData;
   
   if (!initData) {
+    console.error('❌ Missing initData in request:', {
+      headers: Object.keys(req.headers),
+      hasBody: !!req.body,
+      url: req.url
+    });
     return res.status(401).json({ error: 'Missing Telegram initData' });
   }
 
   const botToken = process.env.TELEGRAM_BOT_TOKEN;
   if (!botToken) {
+    console.error('❌ Bot token not configured');
     return res.status(500).json({ error: 'Bot token not configured' });
   }
 
   try {
     if (!validateTelegramWebApp(initData, botToken)) {
+      console.error('❌ Invalid Telegram auth data:', {
+        initDataLength: initData.length,
+        hasHash: initData.includes('hash=')
+      });
       return res.status(401).json({ error: 'Invalid Telegram auth data' });
     }
 
     const userData = parseUserData(initData);
+    if (!userData) {
+      console.error('❌ Failed to parse user data from initData');
+      return res.status(401).json({ error: 'Failed to parse user data' });
+    }
+
     if (!isAuthDataRecent(initData)) {
+      console.error('❌ Auth data expired');
       return res.status(401).json({ error: 'Auth data expired' });
     }
 
     req.user = userData;
     next();
   } catch (error) {
-    console.error('Auth validation error:', error);
+    console.error('❌ Auth validation error:', error);
     res.status(401).json({ error: 'Authentication failed' });
   }
 }
@@ -55,15 +71,32 @@ function validateTelegramAuth(req, res, next) {
 // Auth endpoint
 router.post('/auth', async (req, res) => {
   try {
-    const { initData } = req.body;
+    // Try to get initData from body or headers
+    const initData = req.body.initData || req.headers['x-telegram-init-data'];
     
     if (!initData) {
+      console.error('❌ /auth: Missing initData', {
+        hasBody: !!req.body,
+        hasHeaders: !!req.headers['x-telegram-init-data'],
+        headers: Object.keys(req.headers)
+      });
       return res.status(400).json({ error: 'Missing initData' });
     }
 
     const botToken = process.env.TELEGRAM_BOT_TOKEN;
+    if (!botToken) {
+      console.error('❌ /auth: Bot token not configured');
+      return res.status(500).json({ error: 'Bot token not configured' });
+    }
+
     if (!validateTelegramWebApp(initData, botToken)) {
+      console.error('❌ /auth: Invalid Telegram auth data');
       return res.status(401).json({ error: 'Invalid Telegram auth data' });
+    }
+
+    if (!isAuthDataRecent(initData)) {
+      console.error('❌ /auth: Auth data expired');
+      return res.status(401).json({ error: 'Auth data expired' });
     }
 
     if (!db) db = await getDatabase();
@@ -84,6 +117,23 @@ router.post('/auth', async (req, res) => {
         }
       }
 
+      // Try to get photo from Telegram Bot API if not in initData
+      let photoUrl = userData.photo_url;
+      if (!photoUrl && process.env.TELEGRAM_BOT_TOKEN) {
+        try {
+          const TelegramBot = (await import('node-telegram-bot-api')).default;
+          const bot = new TelegramBot(process.env.TELEGRAM_BOT_TOKEN);
+          const photos = await bot.getUserProfilePhotos(userData.id, { limit: 1 });
+          if (photos.total_count > 0 && photos.photos[0] && photos.photos[0][0]) {
+            const fileId = photos.photos[0][0].file_id;
+            const file = await bot.getFile(fileId);
+            photoUrl = `https://api.telegram.org/file/bot${process.env.TELEGRAM_BOT_TOKEN}/${file.file_path}`;
+          }
+        } catch (error) {
+          console.log('Could not fetch photo from Telegram API:', error.message);
+        }
+      }
+
       db.prepare(`
         INSERT INTO users (telegram_id, username, first_name, last_name, photo_url, referral_code, referred_by, balance, bonus_balance, total_wagered, total_xp, rank_id, rank_name)
         VALUES (?, ?, ?, ?, ?, ?, ?, 0, 0, 0, 0, 1, 'Newbie')
@@ -92,7 +142,7 @@ router.post('/auth', async (req, res) => {
         userData.username || null,
         userData.first_name || 'User',
         userData.last_name || null,
-        userData.photo_url || null,
+        photoUrl || null,
         referralCode,
         referrerId
       );
@@ -109,7 +159,25 @@ router.post('/auth', async (req, res) => {
         db.prepare('UPDATE users SET bonus_balance = bonus_balance + ? WHERE id = ?').run(referrerBonus, referrerId);
       }
     } else {
-      // Update user info
+      // Update user info - get fresh photo_url from Telegram if available
+      let photoUrl = userData.photo_url || user.photo_url;
+      
+      // Try to get photo from Telegram Bot API if not in initData
+      if (!photoUrl && process.env.TELEGRAM_BOT_TOKEN) {
+        try {
+          const TelegramBot = (await import('node-telegram-bot-api')).default;
+          const bot = new TelegramBot(process.env.TELEGRAM_BOT_TOKEN);
+          const photos = await bot.getUserProfilePhotos(userData.id, { limit: 1 });
+          if (photos.total_count > 0 && photos.photos[0] && photos.photos[0][0]) {
+            const fileId = photos.photos[0][0].file_id;
+            const file = await bot.getFile(fileId);
+            photoUrl = `https://api.telegram.org/file/bot${process.env.TELEGRAM_BOT_TOKEN}/${file.file_path}`;
+          }
+        } catch (error) {
+          console.log('Could not fetch photo from Telegram API:', error.message);
+        }
+      }
+      
       db.prepare(`
         UPDATE users SET username = ?, first_name = ?, last_name = ?, photo_url = ?
         WHERE telegram_id = ?
@@ -117,7 +185,7 @@ router.post('/auth', async (req, res) => {
         userData.username || user.username,
         userData.first_name || user.first_name,
         userData.last_name || user.last_name,
-        userData.photo_url || user.photo_url,
+        photoUrl,
         userData.id
       );
       user = db.prepare('SELECT * FROM users WHERE telegram_id = ?').get(userData.id);

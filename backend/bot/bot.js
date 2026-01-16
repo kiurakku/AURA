@@ -15,7 +15,29 @@ if (!token) {
 let bot = null;
 
 export async function initBot() {
-  bot = new TelegramBot(token, { polling: true });
+  // Use polling with error handling to prevent conflicts during deployments
+  bot = new TelegramBot(token, { 
+    polling: {
+      interval: 300,
+      autoStart: true,
+      params: {
+        timeout: 10
+      }
+    }
+  });
+  
+  // Handle polling errors gracefully - ignore 409 conflicts during deployments
+  bot.on('polling_error', (error) => {
+    // Ignore 409 conflicts (multiple instances) - they're expected during deployments
+    // This happens when old and new instances run simultaneously during Fly.io deployments
+    if (error.code === 'ETELEGRAM' && error.response?.body?.error_code === 409) {
+      // Silently ignore - this is normal during deployments
+      return;
+    }
+    // Log other errors
+    console.error('❌ Polling error:', error.message);
+  });
+  
   const db = await getDatabase();
 
   // Start command
