@@ -253,16 +253,36 @@ export async function initBot() {
   // Help command
   bot.onText(/\/help/, (msg) => {
     const chatId = msg.chat.id;
+    const keyboard = {
+      inline_keyboard: [[
+        { text: '🎰 Відкрити казино', web_app: { url: webappUrl } }
+      ]]
+    };
     bot.sendMessage(chatId,
       '📖 *Доступні команди:*\n\n' +
-      '/start - Почати роботу з ботом\n' +
-      '/bonus - Отримати щоденний бонус\n' +
+      '💰 *Фінанси:*\n' +
       '/balance - Перевірити баланс\n' +
-      '/referral - Отримати реферальне посилання\n' +
+      '/deposit - Поповнити баланс\n' +
+      '/withdraw - Вивести кошти\n' +
+      '/history - Історія транзакцій\n\n' +
+      '🎮 *Ігри та статистика:*\n' +
+      '/games - Список ігор\n' +
       '/stats - Ваша статистика\n' +
-      '/help - Показати цю довідку\n\n' +
-      '🎰 Для гри використовуйте кнопку "Відкрити казино"',
-      { parse_mode: 'Markdown' }
+      '/rank - Інформація про ранг\n' +
+      '/leaderboard - Таблиця лідерів\n\n' +
+      '🎁 *Бонуси та реферали:*\n' +
+      '/bonus - Щоденний бонус\n' +
+      '/referral - Реферальна програма\n' +
+      '/cashback - Інформація про кешбек\n\n' +
+      'ℹ️ *Інформація:*\n' +
+      '/rules - Правила гри\n' +
+      '/faq - Часті питання\n' +
+      '/support - Підтримка\n\n' +
+      '🎰 Для гри використовуйте кнопку нижче',
+      { 
+        parse_mode: 'Markdown',
+        reply_markup: keyboard
+      }
     );
   });
 
@@ -379,6 +399,436 @@ export async function initBot() {
       `📈 Чистий прибуток: ${(totalWon - totalWagered).toFixed(2)} USDT\n\n` +
       `🏆 Ранг: ${user.rank_name || 'Newbie'}\n` +
       `⭐ XP: ${user.total_xp || 0}`,
+      {
+        parse_mode: 'Markdown',
+        reply_markup: keyboard
+      }
+    );
+  });
+
+  // Deposit command
+  bot.onText(/\/deposit/, async (msg) => {
+    const chatId = msg.chat.id;
+    const userId = msg.from.id;
+
+    const user = db.prepare('SELECT * FROM users WHERE telegram_id = ?').get(userId);
+    if (!user) {
+      return bot.sendMessage(chatId, 'Спочатку виконайте /start');
+    }
+
+    const keyboard = {
+      inline_keyboard: [[
+        {
+          text: '💳 Поповнити баланс',
+          web_app: { url: webappUrl }
+        }
+      ]]
+    };
+
+    bot.sendMessage(chatId,
+      '💳 *Поповнення балансу*\n\n' +
+      'Для поповнення балансу відкрийте казино та перейдіть у розділ "Гаманець".\n\n' +
+      'Підтримувані валюти:\n' +
+      '• USDT (TRC-20)\n' +
+      '• TON\n' +
+      '• BTC\n\n' +
+      'Мінімальна сума поповнення: 1 USDT',
+      {
+        parse_mode: 'Markdown',
+        reply_markup: keyboard
+      }
+    );
+  });
+
+  // Withdraw command
+  bot.onText(/\/withdraw/, async (msg) => {
+    const chatId = msg.chat.id;
+    const userId = msg.from.id;
+
+    const user = db.prepare('SELECT * FROM users WHERE telegram_id = ?').get(userId);
+    if (!user) {
+      return bot.sendMessage(chatId, 'Спочатку виконайте /start');
+    }
+
+    const totalBalance = (user.balance || 0) + (user.bonus_balance || 0);
+    const keyboard = {
+      inline_keyboard: [[
+        {
+          text: '💸 Вивести кошти',
+          web_app: { url: webappUrl }
+        }
+      ]]
+    };
+
+    bot.sendMessage(chatId,
+      '💸 *Виведення коштів*\n\n' +
+      `💰 Доступно для виведення: ${totalBalance.toFixed(2)} USDT\n\n` +
+      'Для виведення коштів відкрийте казино та перейдіть у розділ "Гаманець".\n\n' +
+      'Мінімальна сума виведення: 5 USDT\n' +
+      'Час обробки: від 5 хвилин до 24 годин',
+      {
+        parse_mode: 'Markdown',
+        reply_markup: keyboard
+      }
+    );
+  });
+
+  // Games command
+  bot.onText(/\/games/, async (msg) => {
+    const chatId = msg.chat.id;
+    const keyboard = {
+      inline_keyboard: [[
+        {
+          text: '🎰 Відкрити казино',
+          web_app: { url: webappUrl }
+        }
+      ]]
+    };
+
+    bot.sendMessage(chatId,
+      '🎮 *Доступні ігри:*\n\n' +
+      '🚀 *Crash* - Вгадай момент виходу\n' +
+      '🎲 *Dice* - Більше чи менше\n' +
+      '💣 *Mines* - Знайди всі міни\n\n' +
+      '🌐 *Онлайн ігри:*\n' +
+      '⚔️ Telegram Battle\n' +
+      '🃏 Блекджек (Дурак)\n' +
+      '🚀 Cyber Crash\n' +
+      '❄️ Frost Dice\n' +
+      '🎡 Neon Roulette\n\n' +
+      'Всі ігри використовують Provably Fair алгоритм для чесності!',
+      {
+        parse_mode: 'Markdown',
+        reply_markup: keyboard
+      }
+    );
+  });
+
+  // Rank command
+  bot.onText(/\/rank/, async (msg) => {
+    const chatId = msg.chat.id;
+    const userId = msg.from.id;
+
+    const user = db.prepare('SELECT * FROM users WHERE telegram_id = ?').get(userId);
+    if (!user) {
+      return bot.sendMessage(chatId, 'Спочатку виконайте /start');
+    }
+
+    const rankIcon = getRankIcon(user.rank_name || 'Newbie');
+    const totalWagered = user.total_wagered || 0;
+    
+    // Calculate next rank
+    const ranks = [
+      { name: 'Newbie', turnover: 0, cashback: 1 },
+      { name: 'Gambler', turnover: 500, cashback: 3 },
+      { name: 'High Roller', turnover: 5000, cashback: 5 },
+      { name: 'Pro', turnover: 10000, cashback: 7 },
+      { name: 'Elite', turnover: 25000, cashback: 10 },
+      { name: 'Aura Legend', turnover: 50000, cashback: 15 }
+    ];
+    
+    let currentRankIndex = 0;
+    for (let i = ranks.length - 1; i >= 0; i--) {
+      if (totalWagered >= ranks[i].turnover) {
+        currentRankIndex = i;
+        break;
+      }
+    }
+    
+    const currentRank = ranks[currentRankIndex];
+    const nextRank = currentRankIndex < ranks.length - 1 ? ranks[currentRankIndex + 1] : null;
+    const neededForNext = nextRank ? nextRank.turnover - totalWagered : 0;
+    const progress = nextRank ? ((totalWagered - currentRank.turnover) / (nextRank.turnover - currentRank.turnover) * 100).toFixed(1) : 100;
+
+    const keyboard = {
+      inline_keyboard: [[
+        {
+          text: '🎰 Грати зараз',
+          web_app: { url: webappUrl }
+        }
+      ]]
+    };
+
+    let rankText = `⭐ *Ваш ранг:* ${rankIcon} *${user.rank_name || 'Newbie'}*\n\n`;
+    rankText += `💰 Поставлено: ${totalWagered.toFixed(2)} USDT\n`;
+    rankText += `💎 Кешбек: ${currentRank.cashback}%\n`;
+    rankText += `⭐ XP: ${user.total_xp || 0}\n\n`;
+    
+    if (nextRank) {
+      rankText += `📈 *До наступного рангу:*\n`;
+      rankText += `${nextRank.name} - залишилось ${neededForNext.toFixed(2)} USDT\n`;
+      rankText += `Прогрес: ${progress}%`;
+    } else {
+      rankText += `🏆 Ви досягли максимального рангу!`;
+    }
+
+    bot.sendMessage(chatId, rankText, {
+      parse_mode: 'Markdown',
+      reply_markup: keyboard
+    });
+  });
+
+  // Leaderboard command
+  bot.onText(/\/leaderboard/, async (msg) => {
+    const chatId = msg.chat.id;
+    const userId = msg.from.id;
+
+    const user = db.prepare('SELECT * FROM users WHERE telegram_id = ?').get(userId);
+    if (!user) {
+      return bot.sendMessage(chatId, 'Спочатку виконайте /start');
+    }
+
+    // Get top 10 users by total_wagered
+    const topUsers = db.prepare(`
+      SELECT telegram_id, first_name, username, total_wagered, rank_name, total_xp
+      FROM users
+      ORDER BY total_wagered DESC
+      LIMIT 10
+    `).all();
+
+    let leaderboardText = '🏆 *Таблиця лідерів*\n\n';
+    leaderboardText += 'Топ-10 гравців за сумою ставок:\n\n';
+
+    topUsers.forEach((u, index) => {
+      const medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `${index + 1}.`;
+      const rankIcon = getRankIcon(u.rank_name || 'Newbie');
+      const name = u.first_name || u.username || 'Гравець';
+      leaderboardText += `${medal} ${rankIcon} ${name}\n`;
+      leaderboardText += `   💰 ${(u.total_wagered || 0).toFixed(2)} USDT | ⭐ ${u.total_xp || 0} XP\n\n`;
+    });
+
+    // Find user position
+    const userPosition = db.prepare(`
+      SELECT COUNT(*) + 1 as position
+      FROM users
+      WHERE total_wagered > ?
+    `).get(user.total_wagered || 0);
+
+    leaderboardText += `\n📍 Ваша позиція: #${userPosition?.position || '?'}`;
+
+    const keyboard = {
+      inline_keyboard: [[
+        {
+          text: '🎰 Грати зараз',
+          web_app: { url: webappUrl }
+        }
+      ]]
+    };
+
+    bot.sendMessage(chatId, leaderboardText, {
+      parse_mode: 'Markdown',
+      reply_markup: keyboard
+    });
+  });
+
+  // History command
+  bot.onText(/\/history/, async (msg) => {
+    const chatId = msg.chat.id;
+    const userId = msg.from.id;
+
+    const user = db.prepare('SELECT * FROM users WHERE telegram_id = ?').get(userId);
+    if (!user) {
+      return bot.sendMessage(chatId, 'Спочатку виконайте /start');
+    }
+
+    const transactions = db.prepare(`
+      SELECT * FROM transactions 
+      WHERE user_id = ? 
+      ORDER BY created_at DESC 
+      LIMIT 10
+    `).all(user.id);
+
+    if (transactions.length === 0) {
+      return bot.sendMessage(chatId,
+        '📜 *Історія транзакцій*\n\n' +
+        'У вас поки немає транзакцій.\n\n' +
+        'Поповніть баланс або почніть грати!',
+        { parse_mode: 'Markdown' }
+      );
+    }
+
+    let historyText = '📜 *Останні транзакції:*\n\n';
+    transactions.forEach((tx, index) => {
+      const date = new Date(tx.created_at).toLocaleDateString('uk-UA', {
+        day: '2-digit',
+        month: 'short',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+      const amount = parseFloat(tx.amount || 0).toFixed(2);
+      const type = tx.type === 'deposit' ? '💵 Поповнення' :
+                   tx.type === 'withdraw' ? '💸 Виведення' :
+                   tx.type === 'admin_bonus' ? '🎁 Поповнення від Aura Team' :
+                   tx.type === 'daily_bonus' ? '🎁 Щоденний бонус' :
+                   tx.type === 'game_win' ? '🎉 Виграш' :
+                   tx.type === 'game_bet' ? '🎮 Ставка' : '📝 Інше';
+      const status = tx.status === 'completed' ? '✅' : tx.status === 'pending' ? '⏳' : '❌';
+      const sign = (tx.type === 'deposit' || tx.type === 'admin_bonus' || tx.type === 'daily_bonus' || tx.type === 'game_win') ? '+' : '-';
+      historyText += `${index + 1}. ${type} ${status}\n   ${sign}${amount} ${tx.currency || 'USDT'}\n   ${date}\n\n`;
+    });
+
+    const keyboard = {
+      inline_keyboard: [[
+        {
+          text: '🎰 Відкрити казино',
+          web_app: { url: webappUrl }
+        }
+      ]]
+    };
+
+    bot.sendMessage(chatId, historyText, {
+      parse_mode: 'Markdown',
+      reply_markup: keyboard
+    });
+  });
+
+  // Cashback command
+  bot.onText(/\/cashback/, async (msg) => {
+    const chatId = msg.chat.id;
+    const userId = msg.from.id;
+
+    const user = db.prepare('SELECT * FROM users WHERE telegram_id = ?').get(userId);
+    if (!user) {
+      return bot.sendMessage(chatId, 'Спочатку виконайте /start');
+    }
+
+    const rankIcon = getRankIcon(user.rank_name || 'Newbie');
+    const totalWagered = user.total_wagered || 0;
+    
+    // Calculate cashback rate based on rank
+    let cashbackRate = 1;
+    if (totalWagered >= 50000) cashbackRate = 15;
+    else if (totalWagered >= 25000) cashbackRate = 10;
+    else if (totalWagered >= 10000) cashbackRate = 7;
+    else if (totalWagered >= 5000) cashbackRate = 5;
+    else if (totalWagered >= 500) cashbackRate = 3;
+    else cashbackRate = 1;
+
+    const keyboard = {
+      inline_keyboard: [[
+        {
+          text: '🎰 Відкрити казино',
+          web_app: { url: webappUrl }
+        }
+      ]]
+    };
+
+    bot.sendMessage(chatId,
+      `💎 *Кешбек система*\n\n` +
+      `Ваш ранг: ${rankIcon} ${user.rank_name || 'Newbie'}\n` +
+      `Поточна ставка кешбеку: *${cashbackRate}%*\n\n` +
+      `Кешбек нараховується щопонеділка від суми програних коштів за минулий тиждень.\n\n` +
+      `Рівні кешбеку:\n` +
+      `🟤 Newbie - 1%\n` +
+      `⚪ Gambler - 3%\n` +
+      `🟡 High Roller - 5%\n` +
+      `💎 Pro - 7%\n` +
+      `👑 Elite - 10%\n` +
+      `⭐ Aura Legend - 15%`,
+      {
+        parse_mode: 'Markdown',
+        reply_markup: keyboard
+      }
+    );
+  });
+
+  // Rules command
+  bot.onText(/\/rules/, (msg) => {
+    const chatId = msg.chat.id;
+    const keyboard = {
+      inline_keyboard: [[
+        {
+          text: '🎰 Відкрити казино',
+          web_app: { url: webappUrl }
+        }
+      ]]
+    };
+
+    bot.sendMessage(chatId,
+      '📜 *Правила AURA Casino*\n\n' +
+      '1️⃣ *Вік:*\n' +
+      'Вам має бути 18+ років для гри\n\n' +
+      '2️⃣ *Бонусна політика:*\n' +
+      '• Wagering x35: Будь-який бонус має бути проставлений 35 разів перед виводом\n' +
+      '• Anti-Abuse: Створення мульти-акаунтів веде до блокування\n\n' +
+      '3️⃣ *Ліміти:*\n' +
+      '• Мінімальний вивід: 5 USDT\n' +
+      '• Час обробки: від 5 хвилин до 24 годин\n' +
+      '• Максимальний вивід за 24 години: 10,000 USDT\n\n' +
+      '4️⃣ *Provably Fair:*\n' +
+      'Всі ігри використовують Provably Fair алгоритм для перевірки чесності\n\n' +
+      '5️⃣ *Відповідальність:*\n' +
+      'Грайте відповідально. Казино не несе відповідальності за залежність від азартних ігор.',
+      {
+        parse_mode: 'Markdown',
+        reply_markup: keyboard
+      }
+    );
+  });
+
+  // FAQ command
+  bot.onText(/\/faq/, (msg) => {
+    const chatId = msg.chat.id;
+    const keyboard = {
+      inline_keyboard: [[
+        {
+          text: '🎰 Відкрити казино',
+          web_app: { url: webappUrl }
+        },
+        {
+          text: '💬 Підтримка',
+          url: 'https://t.me/your_support_bot'
+        }
+      ]]
+    };
+
+    bot.sendMessage(chatId,
+      '❓ *Часті питання (FAQ)*\n\n' +
+      '❓ *Як поповнити баланс?*\n' +
+      'Відкрийте казино → Гаманець → Поповнити. Підтримуються USDT, TON, BTC.\n\n' +
+      '❓ *Як вивести кошти?*\n' +
+      'Відкрийте казино → Гаманець → Вивести. Мінімум 5 USDT.\n\n' +
+      '❓ *Що таке Provably Fair?*\n' +
+      'Це система, яка дозволяє перевірити чесність кожної гри через хеш.\n\n' +
+      '❓ *Як працює реферальна система?*\n' +
+      'Запрошуйте друзів через ваше реферальне посилання. За кожного друга ви отримуєте бонус!\n\n' +
+      '❓ *Як отримати щоденний бонус?*\n' +
+      'Виконайте команду /bonus один раз на день.\n\n' +
+      '❓ *Що таке кешбек?*\n' +
+      'Повернення відсотка від програних коштів. Нараховується щопонеділка.\n\n' +
+      '❓ *Як підвищити ранг?*\n' +
+      'Ранг залежить від суми ставок. Більше грайте, щоб підвищити ранг!\n\n' +
+      '💬 Якщо у вас є інші питання, зверніться до підтримки.',
+      {
+        parse_mode: 'Markdown',
+        reply_markup: keyboard
+      }
+    );
+  });
+
+  // Support command
+  bot.onText(/\/support/, (msg) => {
+    const chatId = msg.chat.id;
+    const keyboard = {
+      inline_keyboard: [[
+        {
+          text: '💬 Написати в підтримку',
+          url: 'https://t.me/your_support_bot'
+        },
+        {
+          text: '🎰 Відкрити казино',
+          web_app: { url: webappUrl }
+        }
+      ]]
+    };
+
+    bot.sendMessage(chatId,
+      '💬 *Підтримка AURA Casino*\n\n' +
+      'Якщо у вас виникли питання або проблеми:\n\n' +
+      '📧 Email: support@auraslots.com\n' +
+      '💬 Telegram: @your_support_bot\n' +
+      '⏰ Час роботи: 24/7\n\n' +
+      'Ми завжди готові допомогти!',
       {
         parse_mode: 'Markdown',
         reply_markup: keyboard
