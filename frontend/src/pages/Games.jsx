@@ -435,7 +435,7 @@ function Games({ user, initData, onBalanceUpdate }) {
       {/* Статистика фільтрів */}
       <div className="games-stats">
         <span className="games-count">
-          Знайдено: <strong>{filteredAndSortedGames.length}</strong> ігор
+          Знайдено: <strong>{filteredAndSortedGames?.length || 0}</strong> ігор
         </span>
         {(gameType !== 'all' || searchQuery) && (
           <button 
