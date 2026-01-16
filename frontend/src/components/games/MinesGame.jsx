@@ -122,7 +122,7 @@ function MinesGame({ initData, onBack, onBalanceUpdate, botMode = false }) {
       alert(`💰 Ви вивели кошти! Множник: ${data.multiplier.toFixed(2)}x`);
       // Offer to share win
       if (data.win_amount > 0 && window.confirm('Поділитися виграшем з друзями?')) {
-        shareWin(initData, gameId, data.win_amount, 'mines');
+        shareWin('Mines', data.win_amount, data.multiplier);
       }
     } catch (error) {
       console.error('Cashout error:', error);

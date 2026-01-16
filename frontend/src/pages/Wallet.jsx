@@ -48,9 +48,9 @@ function Wallet({ user, initData, onBalanceUpdate }) {
   };
 
   const currencies = [
-    { id: 'USDT', name: 'USDT', icon: '/icons/usdt.svg', emoji: '💵', network: 'TRC-20' },
-    { id: 'TON', name: 'TON', icon: '/icons/ton.svg', emoji: '⚡', network: 'TON' },
-    { id: 'BTC', name: 'BTC', icon: '/icons/btc.svg', emoji: '₿', network: 'Bitcoin' }
+    { id: 'USDT', name: 'USDT', icon: '/materials/icons/usdt.png', emoji: '💵', network: 'TRC-20' },
+    { id: 'TON', name: 'TON', icon: '/materials/icons/ton.png', emoji: '⚡', network: 'TON' },
+    { id: 'BTC', name: 'BTC', icon: '/materials/icons/btc.png', emoji: '₿', network: 'Bitcoin' }
   ];
 
   return (
