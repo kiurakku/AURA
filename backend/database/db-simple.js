@@ -110,7 +110,17 @@ export const db = {
       if (query.user_id) {
         return games.filter(g => g.user_id === query.user_id);
       }
+      if (query.id && query.user_id) {
+        return games.filter(g => g.id === query.id && g.user_id === query.user_id);
+      }
       return games;
+    },
+    findOne: (query = {}) => {
+      const games = readJSON(GAMES_FILE);
+      if (query.id && query.user_id) {
+        return games.find(g => g.id === query.id && g.user_id === query.user_id) || null;
+      }
+      return null;
     },
     create: (data) => {
       const games = readJSON(GAMES_FILE);
@@ -119,6 +129,16 @@ export const db = {
       games.push(game);
       writeJSON(GAMES_FILE, games);
       return game;
+    },
+    update: (query, data) => {
+      const games = readJSON(GAMES_FILE);
+      const index = games.findIndex(g => g.id === query.id && g.user_id === query.user_id);
+      if (index !== -1) {
+        games[index] = { ...games[index], ...data };
+        writeJSON(GAMES_FILE, games);
+        return games[index];
+      }
+      return null;
     }
   },
   referrals: {

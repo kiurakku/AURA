@@ -8,8 +8,11 @@ function CrashGame({ initData, onBack, onBalanceUpdate }) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [multiplier, setMultiplier] = useState(1.00);
   const [history, setHistory] = useState([]);
-  const canvasRef = useRef(null);
+  const [gameId, setGameId] = useState(null);
+  const [crashed, setCrashed] = useState(false);
+  const [actualMultiplier, setActualMultiplier] = useState(null);
   const animationRef = useRef(null);
+  const gameStartTime = useRef(null);
 
   useEffect(() => {
     fetchHistory();
@@ -25,7 +28,7 @@ function CrashGame({ initData, onBack, onBalanceUpdate }) {
         .slice(0, 10)
         .map(g => {
           const data = JSON.parse(g.game_data || '{}');
-          return data.multiplier || 1.0;
+          return data.multiplier || data.cashout_multiplier || 1.0;
         });
       setHistory(crashGames.reverse());
     } catch (error) {
@@ -38,60 +41,102 @@ function CrashGame({ initData, onBack, onBalanceUpdate }) {
     
     setIsPlaying(true);
     setMultiplier(1.00);
+    setCrashed(false);
+    setActualMultiplier(null);
+    gameStartTime.current = Date.now();
 
-    // Animate multiplier
-    const startTime = Date.now();
-    const animate = () => {
-      const elapsed = (Date.now() - startTime) / 1000;
-      const newMultiplier = 1.00 + (elapsed * 0.1);
-      setMultiplier(newMultiplier);
+    try {
+      // Start game on server
+      const response = await api.post('/games/crash', {
+        bet_amount: betAmount,
+        auto_cashout: autoCashout,
+        action: 'start'
+      }, {
+        headers: { 'x-telegram-init-data': initData }
+      });
 
-      if (newMultiplier < 100) {
-        animationRef.current = requestAnimationFrame(animate);
-      }
-    };
-    animate();
+      const result = response.data;
+      setGameId(result.game_id);
+      setActualMultiplier(result.multiplier);
+      onBalanceUpdate();
 
-    // Make API call after animation
-    setTimeout(async () => {
-      try {
-        const response = await api.post('/games/crash', {
-          bet_amount: betAmount,
-          auto_cashout: autoCashout
-        }, {
-          headers: { 'x-telegram-init-data': initData }
-        });
-
-        const result = response.data;
-        setMultiplier(result.multiplier);
-        setIsPlaying(false);
-        onBalanceUpdate();
-        fetchHistory();
+      // Animate multiplier
+      const animate = () => {
+        if (!isPlaying || crashed) return;
         
-        if (result.win_amount > 0) {
-          alert(`Ви виграли ${result.win_amount.toFixed(2)} USDT!`);
+        const elapsed = (Date.now() - gameStartTime.current) / 1000;
+        const newMultiplier = 1.00 + (elapsed * 0.1);
+        setMultiplier(newMultiplier);
+
+        // Check auto cashout
+        if (autoCashout && newMultiplier >= autoCashout) {
+          cashout(newMultiplier);
+          return;
         }
-      } catch (error) {
-        console.error('Game error:', error);
-        setIsPlaying(false);
-        alert(error.response?.data?.error || 'Помилка гри');
-      }
-    }, 2000);
+
+        // Check if reached actual multiplier
+        if (newMultiplier >= result.multiplier) {
+          // Crashed
+          setCrashed(true);
+          setIsPlaying(false);
+          cancelAnimationFrame(animationRef.current);
+          setMultiplier(result.multiplier);
+          alert('Гра завершена');
+          onBalanceUpdate();
+          fetchHistory();
+          return;
+        }
+
+        animationRef.current = requestAnimationFrame(animate);
+      };
+      animate();
+    } catch (error) {
+      console.error('Game error:', error);
+      setIsPlaying(false);
+      setCrashed(true);
+      cancelAnimationFrame(animationRef.current);
+      alert(error.response?.data?.error || 'Помилка гри');
+    }
   };
 
-  const cashout = () => {
-    if (!isPlaying) return;
+  const cashout = async (currentMult = null) => {
+    if (!isPlaying || crashed || !gameId) return;
+    
+    const cashoutMult = currentMult || multiplier;
     cancelAnimationFrame(animationRef.current);
-    // Cashout logic handled by API
+    setIsPlaying(false);
+    setCrashed(true);
+    
+    try {
+      const response = await api.post('/games/crash', {
+        game_id: gameId,
+        action: 'cashout',
+        cashout_multiplier: cashoutMult
+      }, {
+        headers: { 'x-telegram-init-data': initData }
+      });
+
+      const result = response.data;
+      setMultiplier(result.multiplier);
+      onBalanceUpdate();
+      fetchHistory();
+      
+      alert(`💰 Ви вивели кошти! Множник: ${result.multiplier.toFixed(2)}x. Виграш: ${result.win_amount.toFixed(2)} USDT`);
+    } catch (error) {
+      console.error('Cashout error:', error);
+      alert(error.response?.data?.error || 'Помилка виводу');
+    }
   };
 
   return (
     <div className="crash-game">
       <button className="back-btn" onClick={onBack}>← Назад</button>
       
-      <div className="crash-container glass">
+      <div className="crash-container glass-card">
         <div className="multiplier-display">
-          <div className="multiplier-value">{multiplier.toFixed(2)}x</div>
+          <div className={`multiplier-value ${isPlaying ? 'animating' : ''}`}>
+            {multiplier.toFixed(2)}x
+          </div>
           {autoCashout && (
             <div className="auto-cashout-indicator">
               Автовихід: {autoCashout}x
@@ -163,7 +208,7 @@ function CrashGame({ initData, onBack, onBalanceUpdate }) {
               Ставка
             </button>
           ) : (
-            <button className="btn btn-secondary cashout-btn" onClick={cashout}>
+            <button className="btn btn-secondary cashout-btn" onClick={() => cashout()}>
               Вивести
             </button>
           )}

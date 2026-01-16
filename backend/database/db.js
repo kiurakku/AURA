@@ -31,7 +31,15 @@ export async function getDatabase() {
         },
         all: (...params) => {
           if (sql.includes('SELECT') && sql.includes('FROM games') && sql.includes('WHERE user_id')) {
+            if (sql.includes('ORDER BY id DESC LIMIT 1')) {
+              const games = db.games.find({ user_id: params[0] });
+              return games.length > 0 ? [games.sort((a, b) => (b.id || 0) - (a.id || 0))[0]] : [];
+            }
             return db.games.find({ user_id: params[0] }).slice(0, params[1] || 50);
+          }
+          if (sql.includes('SELECT') && sql.includes('FROM games') && sql.includes('WHERE id') && sql.includes('AND user_id')) {
+            const game = db.games.findOne({ id: params[0], user_id: params[1] });
+            return game ? [game] : [];
           }
           if (sql.includes('SELECT') && sql.includes('FROM transactions') && sql.includes('WHERE user_id')) {
             return db.transactions.find({ user_id: params[0] }).slice(0, params[1] || 50);
@@ -43,6 +51,7 @@ export async function getDatabase() {
         },
         run: (...params) => {
           const paramsArray = params.length === 1 && Array.isArray(params[0]) ? params[0] : params;
+          let result = null;
           
           if (sql.includes('INSERT INTO users')) {
             if (sql.includes('referred_by')) {
@@ -84,7 +93,16 @@ export async function getDatabase() {
           }
           if (sql.includes('INSERT INTO games')) {
             const [user_id, game_type, bet_amount, win_amount, game_data, server_seed, client_seed, result_hash] = paramsArray;
-            db.games.create({ user_id, game_type, bet_amount, win_amount, game_data, server_seed, client_seed, result_hash, is_provably_fair: 1 });
+            const game = db.games.create({ user_id, game_type, bet_amount, win_amount, game_data, server_seed, client_seed, result_hash, is_provably_fair: 1 });
+            result = { lastInsertRowid: game.id };
+          }
+          if (sql.includes('UPDATE games') && sql.includes('SET win_amount')) {
+            const [win_amount, game_data, id] = paramsArray;
+            // Extract user_id from WHERE clause if present
+            const user_id = paramsArray.length > 3 ? paramsArray[3] : null;
+            if (user_id) {
+              db.games.update({ id, user_id }, { win_amount, game_data });
+            }
           }
           if (sql.includes('INSERT OR IGNORE INTO referrals')) {
             const [referrer_id, referred_id] = paramsArray;

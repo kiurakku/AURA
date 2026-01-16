@@ -10,95 +10,129 @@ function MinesGame({ initData, onBack, onBalanceUpdate }) {
   const [mines, setMines] = useState([]);
   const [isPlaying, setIsPlaying] = useState(false);
   const [gameResult, setGameResult] = useState(null);
+  const [gameId, setGameId] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   const startGame = async () => {
-    if (isPlaying) return;
+    if (isPlaying || loading) return;
     
-    setIsPlaying(true);
-    setRevealed(new Set());
-    setMines([]);
-    setGameResult(null);
+    setLoading(true);
+    try {
+      const response = await api.post('/games/mines', {
+        bet_amount: betAmount,
+        mine_count: mineCount,
+        grid_size: gridSize,
+        action: 'start'
+      }, {
+        headers: { 'x-telegram-init-data': initData }
+      });
 
-    // TODO: Make API call to start game and get mine positions
-    // For now, using client-side generation (should be server-side)
-    const minePositions = generateMines(gridSize, mineCount);
-    setMines(minePositions);
-  };
-
-  const generateMines = (size, count) => {
-    const positions = [];
-    const used = new Set();
-    
-    while (positions.length < count) {
-      const pos = Math.floor(Math.random() * size);
-      if (!used.has(pos)) {
-        used.add(pos);
-        positions.push(pos);
-      }
+      const data = response.data;
+      setGameId(data.game_id);
+      setIsPlaying(true);
+      setRevealed(new Set());
+      setMines([]);
+      setGameResult(null);
+      onBalanceUpdate();
+    } catch (error) {
+      console.error('Start game error:', error);
+      alert(error.response?.data?.error || 'Помилка запуску гри');
+    } finally {
+      setLoading(false);
     }
-    
-    return positions.sort((a, b) => a - b);
   };
 
   const revealCell = async (index) => {
-    if (!isPlaying || revealed.has(index)) return;
+    if (!isPlaying || revealed.has(index) || loading || gameResult) return;
 
-    const newRevealed = new Set(revealed);
-    newRevealed.add(index);
-    setRevealed(newRevealed);
+    setLoading(true);
+    try {
+      const response = await api.post('/games/mines', {
+        game_id: gameId,
+        action: 'reveal',
+        cell_index: index
+      }, {
+        headers: { 'x-telegram-init-data': initData }
+      });
 
-    if (mines.includes(index)) {
-      // Hit a mine - game over
-      setIsPlaying(false);
-      setGameResult({ won: false, multiplier: 0 });
-      onBalanceUpdate();
-      alert('💣 Ви натрапили на міну! Гра закінчена.');
-      return;
-    }
+      const data = response.data;
+      
+      if (data.hit_mine) {
+        // Hit a mine - game over
+        setIsPlaying(false);
+        setGameResult({ won: false, multiplier: 0 });
+        setRevealed(prev => new Set([...prev, index]));
+        onBalanceUpdate();
+        alert('💣 Ви натрапили на міну! Гра закінчена.');
+        return;
+      }
 
-    // Check if all safe cells are revealed
-    const safeCells = gridSize - mineCount;
-    if (newRevealed.size === safeCells) {
-      // Won!
-      setIsPlaying(false);
-      const multiplier = calculateMultiplier(newRevealed.size, mineCount);
-      setGameResult({ won: true, multiplier });
-      onBalanceUpdate();
-      alert(`🎉 Ви виграли! Множник: ${multiplier.toFixed(2)}x`);
+      if (data.won && data.all_revealed) {
+        // Won!
+        setIsPlaying(false);
+        setGameResult({ won: true, multiplier: data.multiplier });
+        setRevealed(prev => new Set([...prev, index]));
+        onBalanceUpdate();
+        alert(`🎉 Ви виграли! Множник: ${data.multiplier.toFixed(2)}x`);
+        return;
+      }
+
+      // Safe cell
+      setRevealed(prev => new Set([...prev, index]));
+    } catch (error) {
+      console.error('Reveal cell error:', error);
+      alert(error.response?.data?.error || 'Помилка');
+    } finally {
+      setLoading(false);
     }
   };
 
-  const calculateMultiplier = (revealedCount, mines) => {
-    const risk = mines / gridSize;
-    return 1 + (revealedCount * 0.1) * (1 - risk);
-  };
-
-  const cashout = () => {
-    if (!isPlaying || revealed.size === 0) return;
+  const cashout = async () => {
+    if (!isPlaying || revealed.size === 0 || loading || gameResult) return;
     
-    const multiplier = calculateMultiplier(revealed.size, mineCount);
-    setIsPlaying(false);
-    setGameResult({ won: true, multiplier });
-    onBalanceUpdate();
-    alert(`💰 Ви вивели кошти! Множник: ${multiplier.toFixed(2)}x`);
+    setLoading(true);
+    try {
+      const response = await api.post('/games/mines', {
+        game_id: gameId,
+        action: 'cashout'
+      }, {
+        headers: { 'x-telegram-init-data': initData }
+      });
+
+      const data = response.data;
+      setIsPlaying(false);
+      setGameResult({ won: true, multiplier: data.multiplier });
+      onBalanceUpdate();
+      alert(`💰 Ви вивели кошти! Множник: ${data.multiplier.toFixed(2)}x`);
+    } catch (error) {
+      console.error('Cashout error:', error);
+      alert(error.response?.data?.error || 'Помилка виводу');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const calculateMultiplier = () => {
+    if (revealed.size === 0) return 1.0;
+    const risk = mineCount / gridSize;
+    return 1 + (revealed.size * 0.1) * (1 - risk);
   };
 
   const renderGrid = () => {
     const cells = [];
     for (let i = 0; i < gridSize; i++) {
       const isRevealed = revealed.has(i);
-      const isMine = mines.includes(i);
       const isGameOver = gameResult && !gameResult.won;
       
       cells.push(
         <button
           key={i}
-          className={`mine-cell ${isRevealed ? 'revealed' : ''} ${isGameOver && isMine ? 'mine' : ''}`}
+          className={`mine-cell ${isRevealed ? 'revealed' : ''} ${isGameOver && mines.includes(i) ? 'mine' : ''}`}
           onClick={() => revealCell(i)}
-          disabled={!isPlaying || isRevealed}
+          disabled={!isPlaying || isRevealed || loading || gameResult}
         >
-          {isRevealed && !isMine && '💎'}
-          {isGameOver && isMine && '💣'}
+          {isRevealed && !mines.includes(i) && '💎'}
+          {isGameOver && mines.includes(i) && '💣'}
         </button>
       );
     }
@@ -109,7 +143,7 @@ function MinesGame({ initData, onBack, onBalanceUpdate }) {
     <div className="mines-game">
       <button className="back-btn" onClick={onBack}>← Назад</button>
       
-      <div className="mines-container glass">
+      <div className="mines-container glass-card">
         <div className="mines-header">
           <div className="mines-info">
             <div className="info-item">
@@ -124,6 +158,12 @@ function MinesGame({ initData, onBack, onBalanceUpdate }) {
               <div className="info-item">
                 <span className="info-label">Множник:</span>
                 <span className="info-value">{gameResult.multiplier.toFixed(2)}x</span>
+              </div>
+            )}
+            {isPlaying && !gameResult && (
+              <div className="info-item">
+                <span className="info-label">Поточний:</span>
+                <span className="info-value">{calculateMultiplier().toFixed(2)}x</span>
               </div>
             )}
           </div>
@@ -143,7 +183,7 @@ function MinesGame({ initData, onBack, onBalanceUpdate }) {
               onChange={(e) => setBetAmount(parseFloat(e.target.value) || 0)}
               min="0.1"
               step="0.1"
-              disabled={isPlaying}
+              disabled={isPlaying || loading}
             />
           </div>
 
@@ -155,19 +195,27 @@ function MinesGame({ initData, onBack, onBalanceUpdate }) {
               max="24"
               value={mineCount}
               onChange={(e) => setMineCount(parseInt(e.target.value))}
-              disabled={isPlaying}
+              disabled={isPlaying || loading}
               className="mine-slider"
             />
           </div>
 
           <div className="game-actions">
             {!isPlaying ? (
-              <button className="btn btn-primary start-btn" onClick={startGame}>
-                Почати гру
+              <button 
+                className="btn btn-primary start-btn" 
+                onClick={startGame}
+                disabled={loading}
+              >
+                {loading ? 'Запуск...' : 'Почати гру'}
               </button>
             ) : (
-              <button className="btn btn-secondary cashout-btn" onClick={cashout}>
-                Вивести
+              <button 
+                className="btn btn-secondary cashout-btn" 
+                onClick={cashout}
+                disabled={loading || revealed.size === 0 || gameResult}
+              >
+                {loading ? 'Обробка...' : 'Вивести'}
               </button>
             )}
           </div>
