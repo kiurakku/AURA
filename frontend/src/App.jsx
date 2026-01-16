@@ -9,6 +9,7 @@ import Referral from './pages/Referral';
 import Profile from './pages/Profile';
 import { api } from './utils/api';
 import { getLanguage, setLanguage, t } from './utils/i18n';
+import { applySettings } from './utils/settings';
 
 function App() {
   const [user, setUser] = useState(null);
@@ -20,6 +21,9 @@ function App() {
 
 
   useEffect(() => {
+    // Apply settings on mount
+    applySettings();
+    
     // Set language from Telegram if available
     if (window.Telegram?.WebApp) {
       const tg = window.Telegram.WebApp;

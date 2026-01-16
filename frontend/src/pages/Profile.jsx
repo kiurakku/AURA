@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import './Profile.css';
 import { api } from '../utils/api';
-import { t, getLanguage } from '../utils/i18n';
+import { t, getLanguage, setLanguage } from '../utils/i18n';
+import { getSettings, saveSettings, updateSetting, applySettings } from '../utils/settings';
 import LanguageSelector from '../components/LanguageSelector';
 import PrivacySettings from '../components/PrivacySettings';
 import WalletManager from '../components/WalletManager';
@@ -17,12 +18,12 @@ function Profile({ user, initData }) {
   });
   const [userRank, setUserRank] = useState(null);
   const [cashbackInfo, setCashbackInfo] = useState(null);
-  const [settings, setSettings] = useState({
-    soundEffects: true,
-    notifications: true,
-    language: getLanguage()
-  });
+  const [settings, setSettings] = useState(() => getSettings());
   const [activeTab, setActiveTab] = useState('stats');
+
+  useEffect(() => {
+    applySettings(settings);
+  }, [settings]);
 
   useEffect(() => {
     if (initData) {
@@ -248,36 +249,161 @@ function Profile({ user, initData }) {
         <div className="settings-section">
           <h2 className="settings-title">{t('profile.settings')}</h2>
           
-          <LanguageSelector onLanguageChange={(lang) => setSettings(prev => ({ ...prev, language: lang }))} />
+          <LanguageSelector onLanguageChange={(lang) => {
+            setLanguage(lang);
+            updateSettingValue('language', lang);
+          }} />
           
           <div className="settings-list">
-            <div className="setting-item">
-              <div className="setting-label">
-                <span className="setting-name">{t('profile.soundEffects')}</span>
-                <span className="setting-desc">Увімкнути звуки гри</span>
+            {/* Appearance Settings */}
+            <div className="settings-group">
+              <h3 className="settings-group-title">{t('profile.appearance')}</h3>
+              
+              <div className="setting-item">
+                <div className="setting-label">
+                  <span className="setting-name">{t('profile.animations')}</span>
+                  <span className="setting-desc">{t('profile.animationsDesc')}</span>
+                </div>
+                <label className="toggle-switch">
+                  <input
+                    type="checkbox"
+                    checked={settings.animations}
+                    onChange={() => toggleSetting('animations')}
+                  />
+                  <span className="toggle-slider"></span>
+                </label>
               </div>
-              <label className="toggle-switch">
-                <input
-                  type="checkbox"
-                  checked={settings.soundEffects}
-                  onChange={() => toggleSetting('soundEffects')}
-                />
-                <span className="toggle-slider"></span>
-              </label>
+
+              <div className="setting-item">
+                <div className="setting-label">
+                  <span className="setting-name">{t('profile.reducedMotion')}</span>
+                  <span className="setting-desc">{t('profile.reducedMotionDesc')}</span>
+                </div>
+                <label className="toggle-switch">
+                  <input
+                    type="checkbox"
+                    checked={settings.reducedMotion}
+                    onChange={() => toggleSetting('reducedMotion')}
+                  />
+                  <span className="toggle-slider"></span>
+                </label>
+              </div>
+
+              <div className="setting-item">
+                <div className="setting-label">
+                  <span className="setting-name">{t('profile.fontSize')}</span>
+                  <span className="setting-desc">{t('profile.fontSizeDesc')}</span>
+                </div>
+                <select
+                  className="setting-select"
+                  value={settings.fontSize || 'normal'}
+                  onChange={(e) => updateSettingValue('fontSize', e.target.value)}
+                >
+                  <option value="small">{t('profile.small')}</option>
+                  <option value="normal">{t('profile.normal')}</option>
+                  <option value="large">{t('profile.large')}</option>
+                </select>
+              </div>
+
+              <div className="setting-item">
+                <div className="setting-label">
+                  <span className="setting-name">{t('profile.compactMode')}</span>
+                  <span className="setting-desc">{t('profile.compactModeDesc')}</span>
+                </div>
+                <label className="toggle-switch">
+                  <input
+                    type="checkbox"
+                    checked={settings.compactMode}
+                    onChange={() => toggleSetting('compactMode')}
+                  />
+                  <span className="toggle-slider"></span>
+                </label>
+              </div>
             </div>
-            <div className="setting-item">
-              <div className="setting-label">
-                <span className="setting-name">{t('profile.notifications')}</span>
-                <span className="setting-desc">Отримувати сповіщення про виграші</span>
+
+            {/* Audio & Notifications */}
+            <div className="settings-group">
+              <h3 className="settings-group-title">{t('profile.audioNotifications')}</h3>
+              
+              <div className="setting-item">
+                <div className="setting-label">
+                  <span className="setting-name">{t('profile.soundEffects')}</span>
+                  <span className="setting-desc">{t('profile.soundEffectsDesc')}</span>
+                </div>
+                <label className="toggle-switch">
+                  <input
+                    type="checkbox"
+                    checked={settings.soundEffects}
+                    onChange={() => toggleSetting('soundEffects')}
+                  />
+                  <span className="toggle-slider"></span>
+                </label>
               </div>
-              <label className="toggle-switch">
-                <input
-                  type="checkbox"
-                  checked={settings.notifications}
-                  onChange={() => toggleSetting('notifications')}
-                />
-                <span className="toggle-slider"></span>
-              </label>
+
+              <div className="setting-item">
+                <div className="setting-label">
+                  <span className="setting-name">{t('profile.notifications')}</span>
+                  <span className="setting-desc">{t('profile.notificationsDesc')}</span>
+                </div>
+                <label className="toggle-switch">
+                  <input
+                    type="checkbox"
+                    checked={settings.notifications}
+                    onChange={() => toggleSetting('notifications')}
+                  />
+                  <span className="toggle-slider"></span>
+                </label>
+              </div>
+
+              <div className="setting-item">
+                <div className="setting-label">
+                  <span className="setting-name">{t('profile.hapticFeedback')}</span>
+                  <span className="setting-desc">{t('profile.hapticFeedbackDesc')}</span>
+                </div>
+                <label className="toggle-switch">
+                  <input
+                    type="checkbox"
+                    checked={settings.hapticFeedback}
+                    onChange={() => toggleSetting('hapticFeedback')}
+                  />
+                  <span className="toggle-slider"></span>
+                </label>
+              </div>
+            </div>
+
+            {/* Game Settings */}
+            <div className="settings-group">
+              <h3 className="settings-group-title">{t('profile.gameSettings')}</h3>
+              
+              <div className="setting-item">
+                <div className="setting-label">
+                  <span className="setting-name">{t('profile.autoPlay')}</span>
+                  <span className="setting-desc">{t('profile.autoPlayDesc')}</span>
+                </div>
+                <label className="toggle-switch">
+                  <input
+                    type="checkbox"
+                    checked={settings.autoPlay}
+                    onChange={() => toggleSetting('autoPlay')}
+                  />
+                  <span className="toggle-slider"></span>
+                </label>
+              </div>
+
+              <div className="setting-item">
+                <div className="setting-label">
+                  <span className="setting-name">{t('profile.showBalance')}</span>
+                  <span className="setting-desc">{t('profile.showBalanceDesc')}</span>
+                </div>
+                <label className="toggle-switch">
+                  <input
+                    type="checkbox"
+                    checked={settings.showBalance}
+                    onChange={() => toggleSetting('showBalance')}
+                  />
+                  <span className="toggle-slider"></span>
+                </label>
+              </div>
             </div>
           </div>
 

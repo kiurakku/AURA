@@ -263,6 +263,69 @@ h2 {
   font-family: var(--font-family);
 }
 
+/* Animation Control Classes */
+.no-animations *,
+.no-animations *::before,
+.no-animations *::after {
+  animation-duration: 0s !important;
+  animation-delay: 0s !important;
+  transition-duration: 0s !important;
+  transition-delay: 0s !important;
+}
+
+.reduced-motion *,
+.reduced-motion *::before,
+.reduced-motion *::after {
+  animation-duration: 0.01ms !important;
+  animation-delay: 0.01ms !important;
+  transition-duration: 0.01ms !important;
+  transition-delay: 0.01ms !important;
+}
+
+/* Font Size Settings */
+[data-font-size="small"] {
+  --font-h1: 20px;
+  --font-h2: 16px;
+  --font-body: 14px;
+  --font-small: 11px;
+  --font-balance: 24px;
+}
+
+[data-font-size="normal"] {
+  --font-h1: 24px;
+  --font-h2: 18px;
+  --font-body: 16px;
+  --font-small: 12px;
+  --font-balance: 28px;
+}
+
+[data-font-size="large"] {
+  --font-h1: 28px;
+  --font-h2: 22px;
+  --font-body: 18px;
+  --font-small: 14px;
+  --font-balance: 32px;
+}
+
+/* Compact Mode */
+.compact-mode {
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 12px;
+  --spacing-lg: 16px;
+  --spacing-xl: 20px;
+}
+
+.compact-mode .glass-card {
+  padding: 12px;
+  border-radius: 16px;
+}
+
+.compact-mode .btn {
+  padding: 10px 20px;
+  height: 44px;
+}
+
 /* Animations */
 @keyframes fadeIn {
   from {
