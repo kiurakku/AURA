@@ -7,11 +7,12 @@ export function initSocket(initData) {
     return socket;
   }
 
-  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+  // Use relative URL in production, absolute in development
+  const API_URL = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? '' : 'http://localhost:3001');
   // Extract base URL without /api
-  const baseUrl = API_URL.replace('/api', '');
-  const wsUrl = baseUrl.startsWith('https') 
-    ? baseUrl.replace('https://', 'wss://')
+  const baseUrl = API_URL.replace('/api', '') || window.location.origin;
+  const wsUrl = baseUrl.startsWith('https') || baseUrl.startsWith('wss')
+    ? baseUrl.replace('https://', 'wss://').replace('http://', 'wss://')
     : baseUrl.replace('http://', 'ws://');
 
   socket = io(wsUrl, {

@@ -16,7 +16,8 @@ export default defineConfig({
   },
   build: {
     outDir: 'dist',
-    assetsDir: 'assets'
+    assetsDir: 'assets',
+    base: '/'
   },
   // Обробка статичних файлів з пробілами та кирилицею
   assetsInclude: ['**/*.jpg', '**/*.jpeg', '**/*.png', '**/*.gif']
