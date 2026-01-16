@@ -61,7 +61,7 @@ function Profile({ user, initData }) {
       });
       setCashbackInfo(response.data);
     } catch (error) {
-      console.error('Failed to fetch cashback info:', error);
+      setCashbackInfo(null);
     }
   };
 
