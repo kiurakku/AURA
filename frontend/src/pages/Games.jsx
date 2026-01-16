@@ -121,10 +121,8 @@ function Games({ user, initData, onBalanceUpdate }) {
       
       return () => {
         container.removeEventListener('scroll', checkScrollPosition);
-        container.removeEventListener('scroll', handleUserScroll);
         window.removeEventListener('resize', checkScrollPosition);
         if (autoScroll) clearInterval(autoScroll);
-        if (scrollTimeout) clearTimeout(scrollTimeout);
       };
     }
   }, []);
