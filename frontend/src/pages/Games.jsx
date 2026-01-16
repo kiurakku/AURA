@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import './Games.css';
 import CrashGame from '../components/games/CrashGame';
 import DiceGame from '../components/games/DiceGame';
@@ -24,6 +24,108 @@ function Games({ user, initData, onBalanceUpdate }) {
     }
     return [];
   });
+
+  const tabsContainerRef = useRef(null);
+  const tabsScrollRef = useRef(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(true);
+
+  // Check scroll position
+  const checkScrollPosition = () => {
+    if (!tabsContainerRef.current || !tabsScrollRef.current) return;
+    
+    const container = tabsContainerRef.current;
+    const scroll = tabsScrollRef.current;
+    
+    setCanScrollLeft(container.scrollLeft > 0);
+    setCanScrollRight(
+      container.scrollLeft < scroll.scrollWidth - container.clientWidth - 10
+    );
+  };
+
+  // Scroll to active category
+  const scrollToCategory = (categoryId) => {
+    if (!tabsContainerRef.current || !tabsScrollRef.current) return;
+    
+    const container = tabsContainerRef.current;
+    const scroll = tabsScrollRef.current;
+    const activeTab = scroll.querySelector(`[data-category="${categoryId}"]`);
+    
+    if (activeTab) {
+      const tabRect = activeTab.getBoundingClientRect();
+      const containerRect = container.getBoundingClientRect();
+      const scrollLeft = container.scrollLeft;
+      const tabLeft = activeTab.offsetLeft;
+      const tabWidth = activeTab.offsetWidth;
+      const containerWidth = container.clientWidth;
+      
+      // Calculate scroll position to center the tab
+      const targetScroll = tabLeft - (containerWidth / 2) + (tabWidth / 2);
+      
+      container.scrollTo({
+        left: Math.max(0, targetScroll),
+        behavior: 'smooth'
+      });
+    }
+    
+    setTimeout(checkScrollPosition, 300);
+  };
+
+  useEffect(() => {
+    checkScrollPosition();
+    const container = tabsContainerRef.current;
+    if (container) {
+      container.addEventListener('scroll', checkScrollPosition);
+      window.addEventListener('resize', checkScrollPosition);
+      
+      // Auto-scroll animation (conveyor effect) - only if content overflows
+      let scrollDirection = 1;
+      let autoScroll = null;
+      
+      const startAutoScroll = () => {
+        if (!container || !tabsScrollRef.current) return;
+        
+        const maxScroll = tabsScrollRef.current.scrollWidth - container.clientWidth;
+        if (maxScroll <= 0) {
+          if (autoScroll) clearInterval(autoScroll);
+          return;
+        }
+        
+        if (!autoScroll) {
+          autoScroll = setInterval(() => {
+            if (!container || !tabsScrollRef.current) return;
+            
+            const currentMaxScroll = tabsScrollRef.current.scrollWidth - container.clientWidth;
+            if (currentMaxScroll <= 0) {
+              clearInterval(autoScroll);
+              autoScroll = null;
+              return;
+            }
+            
+            if (container.scrollLeft >= currentMaxScroll - 5) {
+              scrollDirection = -1;
+            } else if (container.scrollLeft <= 5) {
+              scrollDirection = 1;
+            }
+            
+            container.scrollBy({
+              left: scrollDirection * 0.3,
+              behavior: 'auto'
+            });
+          }, 30);
+        }
+      };
+      
+      // Start auto-scroll after initial render
+      setTimeout(startAutoScroll, 1000);
+      
+      return () => {
+        container.removeEventListener('scroll', checkScrollPosition);
+        window.removeEventListener('resize', checkScrollPosition);
+        if (autoScroll) clearInterval(autoScroll);
+      };
+    }
+  }, []);
 
   const categories = [
     { id: 'all', name: t('games.all'), icon: '🎮' },
