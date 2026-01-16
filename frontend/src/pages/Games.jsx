@@ -253,7 +253,13 @@ function Games({ user, initData, onBalanceUpdate }) {
       ? favorites.filter(id => id !== gameId)
       : [...favorites, gameId];
     setFavorites(newFavorites);
-    localStorage.setItem('gameFavorites', JSON.stringify(newFavorites));
+    try {
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('gameFavorites', JSON.stringify(newFavorites));
+      }
+    } catch (error) {
+      // Ignore localStorage errors
+    }
   };
 
   const filteredAndSortedGames = useMemo(() => {
