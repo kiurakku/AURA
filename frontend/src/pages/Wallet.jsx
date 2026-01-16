@@ -22,7 +22,6 @@ function Wallet({ user, initData, onBalanceUpdate }) {
       });
       setTransactions(response.data?.transactions || []);
     } catch (error) {
-      console.error('Failed to fetch transactions:', error);
       setTransactions([]);
     }
   };
@@ -43,7 +42,6 @@ function Wallet({ user, initData, onBalanceUpdate }) {
       // TODO: Implement withdraw API
       alert('Функція виводу буде доступна після налаштування платіжного шлюзу');
     } catch (error) {
-      console.error('Withdraw error:', error);
       alert(error.response?.data?.error || 'Помилка виводу');
     } finally {
       setLoading(false);
