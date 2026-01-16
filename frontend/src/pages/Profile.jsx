@@ -15,6 +15,8 @@ function Profile({ user, initData }) {
     totalWagered: 0,
     totalWon: 0
   });
+  const [userRank, setUserRank] = useState(null);
+  const [cashbackInfo, setCashbackInfo] = useState(null);
   const [settings, setSettings] = useState({
     soundEffects: true,
     notifications: true,
@@ -23,8 +25,44 @@ function Profile({ user, initData }) {
   const [activeTab, setActiveTab] = useState('stats');
 
   useEffect(() => {
-    fetchGameHistory();
+    fetchUserRank();
+    fetchCashbackInfo();
   }, []);
+
+  useEffect(() => {
+    if (userRank) {
+      fetchGameHistory();
+    }
+  }, [userRank]);
+
+  const fetchUserRank = async () => {
+    try {
+      const response = await api.get('/profile', {
+        headers: { 'x-telegram-init-data': initData }
+      });
+      if (response.data.user) {
+        setUserRank({
+          rank_id: response.data.user.rank_id || 1,
+          rank_name: response.data.user.rank_name || 'Newbie',
+          total_wagered: response.data.user.total_wagered || 0,
+          total_xp: response.data.user.total_xp || 0
+        });
+      }
+    } catch (error) {
+      console.error('Failed to fetch user rank:', error);
+    }
+  };
+
+  const fetchCashbackInfo = async () => {
+    try {
+      const response = await api.get('/cashback', {
+        headers: { 'x-telegram-init-data': initData }
+      });
+      setCashbackInfo(response.data);
+    } catch (error) {
+      console.error('Failed to fetch cashback info:', error);
+    }
+  };
 
   const fetchGameHistory = async () => {
     try {
@@ -36,7 +74,7 @@ function Profile({ user, initData }) {
 
       const totalGames = games.length;
       const totalWins = games.filter(g => g.win_amount > 0).length;
-      const totalWagered = games.reduce((sum, g) => sum + (g.bet_amount || 0), 0);
+      const totalWagered = userRank?.total_wagered || games.reduce((sum, g) => sum + (g.bet_amount || 0), 0);
       const totalWon = games.reduce((sum, g) => sum + (g.win_amount || 0), 0);
 
       setStats({
@@ -58,11 +96,23 @@ function Profile({ user, initData }) {
   };
 
   const getPlayerStatus = () => {
-    if (stats.totalWagered > 10000) return 'Diamond Player';
-    if (stats.totalWagered > 5000) return 'Gold Player';
-    if (stats.totalWagered > 1000) return 'Silver Player';
-    return 'Bronze Player';
+    if (stats.totalWagered >= 50000) return { name: 'Aura Legend', icon: '⭐', color: '#FFD700' };
+    if (stats.totalWagered >= 25000) return { name: 'Elite', icon: '👑', color: '#FF6B9D' };
+    if (stats.totalWagered >= 10000) return { name: 'Pro', icon: '💎', color: '#B9F2FF' };
+    if (stats.totalWagered >= 5000) return { name: 'High Roller', icon: '🟡', color: '#FFD700' };
+    if (stats.totalWagered >= 500) return { name: 'Gambler', icon: '⚪', color: '#C0C0C0' };
+    return { name: 'Newbie', icon: '🟤', color: '#CD7F32' };
   };
+
+  const playerStatus = getPlayerStatus();
+  const nextRank = stats.totalWagered >= 50000 ? null : 
+    stats.totalWagered >= 25000 ? { name: 'Aura Legend', needed: 50000 - stats.totalWagered } :
+    stats.totalWagered >= 10000 ? { name: 'Elite', needed: 25000 - stats.totalWagered } :
+    stats.totalWagered >= 5000 ? { name: 'Pro', needed: 10000 - stats.totalWagered } :
+    stats.totalWagered >= 500 ? { name: 'High Roller', needed: 5000 - stats.totalWagered } :
+    { name: 'Gambler', needed: 500 - stats.totalWagered };
+  
+  const progressToNext = nextRank ? ((stats.totalWagered / (stats.totalWagered + nextRank.needed)) * 100) : 100;
 
   const openSupport = () => {
     if (window.Telegram?.WebApp) {
@@ -86,7 +136,10 @@ function Profile({ user, initData }) {
               {user?.first_name?.[0] || 'U'}
             </div>
           )}
-          <div className="profile-badge">{getPlayerStatus()}</div>
+          <div className="profile-badge" style={{ borderColor: playerStatus.color }}>
+            <span className="rank-icon">{playerStatus.icon}</span>
+            <span className="rank-name">{playerStatus.name}</span>
+          </div>
         </div>
         <div className="profile-info">
           <h2>{user?.first_name || 'Гравець'}</h2>

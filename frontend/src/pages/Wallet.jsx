@@ -48,9 +48,9 @@ function Wallet({ user, initData, onBalanceUpdate }) {
   };
 
   const currencies = [
-    { id: 'USDT', name: 'USDT', icon: '💵', network: 'TRC-20' },
-    { id: 'TON', name: 'TON', icon: '⚡', network: 'TON' },
-    { id: 'BTC', name: 'BTC', icon: '₿', network: 'Bitcoin' }
+    { id: 'USDT', name: 'USDT', icon: '/icons/usdt.svg', emoji: '💵', network: 'TRC-20' },
+    { id: 'TON', name: 'TON', icon: '/icons/ton.svg', emoji: '⚡', network: 'TON' },
+    { id: 'BTC', name: 'BTC', icon: '/icons/btc.svg', emoji: '₿', network: 'Bitcoin' }
   ];
 
   return (
@@ -103,7 +103,18 @@ function Wallet({ user, initData, onBalanceUpdate }) {
               className={`currency-option ${selectedCurrency === currency.id ? 'active' : ''}`}
               onClick={() => setSelectedCurrency(currency.id)}
             >
-              <span className="currency-icon">{currency.icon}</span>
+              <span className="currency-icon">
+                <img 
+                  src={currency.icon} 
+                  alt={currency.name}
+                  onError={(e) => {
+                    e.target.style.display = 'none';
+                    e.target.nextSibling.style.display = 'inline';
+                  }}
+                  style={{ width: '32px', height: '32px' }}
+                />
+                <span style={{ display: 'none', fontSize: '32px' }}>{currency.emoji}</span>
+              </span>
               <span className="currency-name">{currency.name}</span>
               <span className="currency-network">{currency.network}</span>
             </button>

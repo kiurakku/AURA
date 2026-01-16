@@ -71,7 +71,18 @@ export const db = {
     create: (data) => {
       const users = readJSON(USERS_FILE);
       const id = users.length > 0 ? Math.max(...users.map(u => u.id || 0)) + 1 : 1;
-      const user = { id, ...data, created_at: new Date().toISOString(), updated_at: new Date().toISOString() };
+      const user = { 
+        id, 
+        ...data, 
+        balance: data.balance || 0,
+        bonus_balance: data.bonus_balance || 0,
+        total_wagered: data.total_wagered || 0,
+        total_xp: data.total_xp || 0,
+        rank_id: data.rank_id || 1,
+        rank_name: data.rank_name || 'Newbie',
+        created_at: new Date().toISOString(), 
+        updated_at: new Date().toISOString() 
+      };
       users.push(user);
       writeJSON(USERS_FILE, users);
       return user;

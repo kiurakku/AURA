@@ -10,6 +10,8 @@ import {
   generateClientSeed,
   createResultHash
 } from '../utils/game-engine.js';
+import { calculateRank, calculateXP, getProgressToNextRank } from '../utils/ranks.js';
+import { updateUserRankAndXP } from '../utils/updateUserRank.js';
 
 const router = express.Router();
 let db = null;
@@ -28,60 +30,101 @@ function validateTelegramAuth(req, res, next) {
   }
 
   const botToken = process.env.TELEGRAM_BOT_TOKEN;
-  
-  if (!validateTelegramWebApp(initData, botToken)) {
-    return res.status(401).json({ error: 'Invalid Telegram initData' });
+  if (!botToken) {
+    return res.status(500).json({ error: 'Bot token not configured' });
   }
 
-  if (!isAuthDataRecent(initData)) {
-    return res.status(401).json({ error: 'Auth data expired' });
-  }
+  try {
+    if (!validateTelegramWebApp(initData, botToken)) {
+      return res.status(401).json({ error: 'Invalid Telegram auth data' });
+    }
 
-  const userData = parseUserData(initData);
-  if (!userData) {
-    return res.status(401).json({ error: 'Invalid user data' });
-  }
+    const userData = parseUserData(initData);
+    if (!isAuthDataRecent(initData)) {
+      return res.status(401).json({ error: 'Auth data expired' });
+    }
 
-  req.user = userData;
-  req.initData = initData;
-  next();
+    req.user = userData;
+    next();
+  } catch (error) {
+    console.error('Auth validation error:', error);
+    res.status(401).json({ error: 'Authentication failed' });
+  }
 }
 
-// Get or create user
-router.post('/auth', validateTelegramAuth, async (req, res) => {
+// Auth endpoint
+router.post('/auth', async (req, res) => {
   try {
-    if (!db) db = getDatabase();
-    const { id, username, first_name, last_name, photo_url } = req.user;
+    const { initData } = req.body;
     
-    // Check if user exists
-    let user = db.prepare('SELECT * FROM users WHERE telegram_id = ?').get(id);
+    if (!initData) {
+      return res.status(400).json({ error: 'Missing initData' });
+    }
+
+    const botToken = process.env.TELEGRAM_BOT_TOKEN;
+    if (!validateTelegramWebApp(initData, botToken)) {
+      return res.status(401).json({ error: 'Invalid Telegram auth data' });
+    }
+
+    if (!db) db = await getDatabase();
     
+    const userData = parseUserData(initData);
+    let user = db.prepare('SELECT * FROM users WHERE telegram_id = ?').get(userData.id);
+
     if (!user) {
       // Create new user
       const referralCode = crypto.randomBytes(8).toString('hex');
-      const stmt = db.prepare(`
-        INSERT INTO users (telegram_id, username, first_name, last_name, photo_url, referral_code)
-        VALUES (?, ?, ?, ?, ?, ?)
-      `);
-      stmt.run(id, username, first_name, last_name, photo_url, referralCode);
-      user = db.prepare('SELECT * FROM users WHERE telegram_id = ?').get(id);
+      const referredBy = new URLSearchParams(initData).get('start_param')?.replace('ref_', '') || null;
+      
+      let referrerId = null;
+      if (referredBy) {
+        const referrer = db.prepare('SELECT * FROM users WHERE referral_code = ?').get(referredBy);
+        if (referrer) {
+          referrerId = referrer.id;
+        }
+      }
+
+      db.prepare(`
+        INSERT INTO users (telegram_id, username, first_name, last_name, photo_url, referral_code, referred_by, balance, bonus_balance, total_wagered, total_xp, rank_id, rank_name)
+        VALUES (?, ?, ?, ?, ?, ?, ?, 0, 0, 0, 0, 1, 'Newbie')
+      `).run(
+        userData.id,
+        userData.username || null,
+        userData.first_name || 'User',
+        userData.last_name || null,
+        userData.photo_url || null,
+        referralCode,
+        referrerId
+      );
+
+      user = db.prepare('SELECT * FROM users WHERE telegram_id = ?').get(userData.id);
+      
+      // Give welcome bonus
+      if (referrerId) {
+        const welcomeBonus = 1.0;
+        db.prepare('UPDATE users SET bonus_balance = bonus_balance + ? WHERE telegram_id = ?').run(welcomeBonus, userData.id);
+        
+        // Give referrer bonus
+        const referrerBonus = 0.5;
+        db.prepare('UPDATE users SET bonus_balance = bonus_balance + ? WHERE id = ?').run(referrerBonus, referrerId);
+      }
     } else {
       // Update user info
-      const stmt = db.prepare(`
-        UPDATE users 
-        SET username = ?, first_name = ?, last_name = ?, photo_url = ?, updated_at = CURRENT_TIMESTAMP
+      db.prepare(`
+        UPDATE users SET username = ?, first_name = ?, last_name = ?, photo_url = ?
         WHERE telegram_id = ?
-      `);
-      stmt.run(username, first_name, last_name, photo_url, id);
-      user = db.prepare('SELECT * FROM users WHERE telegram_id = ?').get(id);
+      `).run(
+        userData.username || user.username,
+        userData.first_name || user.first_name,
+        userData.last_name || user.last_name,
+        userData.photo_url || user.photo_url,
+        userData.id
+      );
+      user = db.prepare('SELECT * FROM users WHERE telegram_id = ?').get(userData.id);
     }
 
-    // Remove sensitive data
-    if (user) {
-      delete user.referred_by;
-    }
-    
-    res.json({ user });
+    delete user.referred_by;
+    res.json({ success: true, user });
   } catch (error) {
     console.error('Auth error:', error);
     res.status(500).json({ error: 'Authentication failed' });
@@ -106,15 +149,16 @@ router.get('/profile', validateTelegramAuth, (req, res) => {
 });
 
 // Get balance
-router.get('/balance', validateTelegramAuth, (req, res) => {
+router.get('/balance', validateTelegramAuth, async (req, res) => {
   try {
-    if (!db) db = getDatabase();
+    if (!db) db = await getDatabase();
     const user = db.prepare('SELECT balance, bonus_balance FROM users WHERE telegram_id = ?').get(req.user.id);
+    
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
     }
     
-    res.json({ 
+    res.json({
       balance: user.balance || 0,
       bonus_balance: user.bonus_balance || 0,
       total: (user.balance || 0) + (user.bonus_balance || 0)
@@ -154,6 +198,9 @@ router.post('/games/crash', validateTelegramAuth, async (req, res) => {
       // Deduct bet immediately
       const newBalance = (user.balance || 0) - bet_amount;
       db.prepare('UPDATE users SET balance = ? WHERE telegram_id = ?').run(newBalance, req.user.id);
+      
+      // Update XP and rank
+      await updateUserRankAndXP(req.user.id, bet_amount);
       
       // Save game record (win_amount will be updated on cashout)
       const gameData = {
@@ -224,7 +271,7 @@ router.post('/games/crash', validateTelegramAuth, async (req, res) => {
 });
 
 // Play Dice game
-router.post('/games/dice', validateTelegramAuth, (req, res) => {
+router.post('/games/dice', validateTelegramAuth, async (req, res) => {
   try {
     const { bet_amount, prediction, target } = req.body; // prediction: 'over' or 'under', target: 1-99
     
@@ -232,7 +279,7 @@ router.post('/games/dice', validateTelegramAuth, (req, res) => {
       return res.status(400).json({ error: 'Invalid parameters' });
     }
 
-    if (!db) db = getDatabase();
+    if (!db) db = await getDatabase();
     const user = db.prepare('SELECT balance FROM users WHERE telegram_id = ?').get(req.user.id);
     if (!user || (user.balance || 0) < bet_amount) {
       return res.status(400).json({ error: 'Insufficient balance' });
@@ -252,6 +299,9 @@ router.post('/games/dice', validateTelegramAuth, (req, res) => {
     const newBalance = (user.balance || 0) - bet_amount + winAmount;
     
     db.prepare('UPDATE users SET balance = ? WHERE telegram_id = ?').run(newBalance, req.user.id);
+    
+    // Update XP and rank
+    await updateUserRankAndXP(req.user.id, bet_amount);
     
     // Save game record
     const gameData = { result, prediction, target, won };
@@ -306,6 +356,9 @@ router.post('/games/mines', validateTelegramAuth, async (req, res) => {
       const newBalance = (user.balance || 0) - bet_amount;
       db.prepare('UPDATE users SET balance = ? WHERE telegram_id = ?').run(newBalance, req.user.id);
       
+      // Update XP and rank
+      await updateUserRankAndXP(req.user.id, bet_amount);
+      
       // Save game start
       const gameData = {
         mine_positions: minePositions,
@@ -315,7 +368,7 @@ router.post('/games/mines', validateTelegramAuth, async (req, res) => {
         mine_count: mine_count || 3
       };
       const resultHash = createResultHash(serverSeed, clientSeed, nonce);
-      const gameRecord = db.prepare(`
+      db.prepare(`
         INSERT INTO games (user_id, game_type, bet_amount, win_amount, game_data, server_seed, client_seed, result_hash)
         VALUES (?, 'mines', ?, 0, ?, ?, ?, ?)
       `).run(req.user.id, bet_amount, JSON.stringify(gameData), serverSeed, clientSeed, resultHash);
@@ -418,6 +471,7 @@ router.post('/games/mines', validateTelegramAuth, async (req, res) => {
         const newBalance = (currentUser.balance || 0) + winAmount;
         
         db.prepare('UPDATE users SET balance = ? WHERE telegram_id = ?').run(newBalance, req.user.id);
+        
         gameData.status = 'completed';
         gameData.win_amount = winAmount;
         gameData.multiplier = multiplier;
@@ -458,12 +512,7 @@ router.get('/games/history', validateTelegramAuth, (req, res) => {
   try {
     if (!db) db = getDatabase();
     const limit = parseInt(req.query.limit) || 50;
-    const games = db.prepare(`
-      SELECT * FROM games 
-      WHERE user_id = ? 
-      ORDER BY created_at DESC 
-      LIMIT ?
-    `).all(req.user.id, limit);
+    const games = db.prepare('SELECT * FROM games WHERE user_id = ?').all(req.user.id, limit);
     
     res.json({ games: games.sort((a, b) => new Date(b.created_at) - new Date(a.created_at)) });
   } catch (error) {
@@ -477,12 +526,7 @@ router.get('/transactions', validateTelegramAuth, (req, res) => {
   try {
     if (!db) db = getDatabase();
     const limit = parseInt(req.query.limit) || 50;
-    const transactions = db.prepare(`
-      SELECT * FROM transactions 
-      WHERE user_id = ? 
-      ORDER BY created_at DESC 
-      LIMIT ?
-    `).all(req.user.id, limit);
+    const transactions = db.prepare('SELECT * FROM transactions WHERE user_id = ?').all(req.user.id, limit);
     
     res.json({ transactions: transactions.sort((a, b) => new Date(b.created_at) - new Date(a.created_at)) });
   } catch (error) {
@@ -495,26 +539,159 @@ router.get('/transactions', validateTelegramAuth, (req, res) => {
 router.get('/referral', validateTelegramAuth, (req, res) => {
   try {
     if (!db) db = getDatabase();
-    const user = db.prepare('SELECT referral_code, referred_by FROM users WHERE telegram_id = ?').get(req.user.id);
+    const user = db.prepare('SELECT * FROM users WHERE telegram_id = ?').get(req.user.id);
+    
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
     }
-    
-    const referrals = db.prepare(`
-      SELECT * FROM referrals WHERE referrer_id = ?
-    `).all(req.user.id);
-    
+
+    const referrals = db.prepare('SELECT * FROM referrals WHERE referrer_id = ?').all(user.id);
     const totalEarnings = referrals.reduce((sum, ref) => sum + (ref.total_earnings || 0), 0);
     
+    const botUsername = process.env.TELEGRAM_BOT_USERNAME || 'your_bot_name';
+    const referralLink = `https://t.me/${botUsername}?start=ref_${user.referral_code}`;
+    
     res.json({
+      referral_link: referralLink,
       referral_code: user.referral_code,
-      referral_link: `https://t.me/${process.env.TELEGRAM_BOT_USERNAME || 'your_bot'}?start=ref_${user.referral_code}`,
       total_referrals: referrals.length,
       total_earnings: totalEarnings
     });
   } catch (error) {
     console.error('Referral error:', error);
     res.status(500).json({ error: 'Failed to get referral info' });
+  }
+});
+
+// Share Win - Generate share image data
+router.post('/share-win', validateTelegramAuth, async (req, res) => {
+  try {
+    const { game_id, win_amount, game_type } = req.body;
+    
+    if (!db) db = await getDatabase();
+    const user = db.prepare('SELECT * FROM users WHERE telegram_id = ?').get(req.user.id);
+    
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    const botUsername = process.env.TELEGRAM_BOT_USERNAME || 'your_bot_name';
+    const referralLink = `https://t.me/${botUsername}?start=ref_${user.referral_code}`;
+    
+    // Generate share data (frontend will create image)
+    const shareData = {
+      username: user.first_name || 'Гравець',
+      win_amount: win_amount.toFixed(2),
+      game_type: game_type,
+      referral_link: referralLink,
+      timestamp: new Date().toISOString()
+    };
+    
+    res.json({ success: true, share_data: shareData });
+  } catch (error) {
+    console.error('Share win error:', error);
+    res.status(500).json({ error: 'Failed to generate share data' });
+  }
+});
+
+// Get cashback info
+router.get('/cashback', validateTelegramAuth, async (req, res) => {
+  try {
+    if (!db) db = await getDatabase();
+    const user = db.prepare('SELECT * FROM users WHERE telegram_id = ?').get(req.user.id);
+    
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // Calculate cashback (1-5% based on rank)
+    const rank = calculateRank(user.total_wagered || 0);
+    const cashbackPercent = rank.cashback;
+    
+    // Get lost games from last week
+    const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+    const games = db.prepare('SELECT * FROM games WHERE user_id = ?').all(user.id);
+    const lostGames = games.filter(g => 
+      new Date(g.created_at) >= weekAgo && 
+      g.win_amount === 0
+    );
+    
+    const totalLost = lostGames.reduce((sum, g) => sum + (g.bet_amount || 0), 0);
+    const cashbackAmount = totalLost * cashbackPercent;
+    
+    // Next cashback date (Monday)
+    const now = new Date();
+    const nextMonday = new Date(now);
+    nextMonday.setDate(now.getDate() + ((1 + 7 - now.getDay()) % 7));
+    nextMonday.setHours(0, 0, 0, 0);
+    
+    res.json({
+      cashback_percent: cashbackPercent * 100,
+      total_lost: totalLost,
+      cashback_amount: cashbackAmount,
+      next_cashback_date: nextMonday.toISOString(),
+      rank: rank.name
+    });
+  } catch (error) {
+    console.error('Cashback error:', error);
+    res.status(500).json({ error: 'Failed to get cashback info' });
+  }
+});
+
+// Claim cashback
+router.post('/cashback/claim', validateTelegramAuth, async (req, res) => {
+  try {
+    if (!db) db = await getDatabase();
+    const user = db.prepare('SELECT * FROM users WHERE telegram_id = ?').get(req.user.id);
+    
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // Check if it's Monday (cashback day)
+    const now = new Date();
+    const isMonday = now.getDay() === 1;
+    
+    if (!isMonday) {
+      return res.status(400).json({ error: 'Cashback доступний тільки в понеділок' });
+    }
+
+    // Calculate cashback
+    const rank = calculateRank(user.total_wagered || 0);
+    const cashbackPercent = rank.cashback;
+    
+    const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+    const games = db.prepare('SELECT * FROM games WHERE user_id = ?').all(user.id);
+    const lostGames = games.filter(g => 
+      new Date(g.created_at) >= weekAgo && 
+      g.win_amount === 0
+    );
+    
+    const totalLost = lostGames.reduce((sum, g) => sum + (g.bet_amount || 0), 0);
+    const cashbackAmount = totalLost * cashbackPercent;
+    
+    if (cashbackAmount <= 0) {
+      return res.status(400).json({ error: 'Немає коштів для кешбеку' });
+    }
+
+    // Add to bonus balance
+    const newBonusBalance = (user.bonus_balance || 0) + cashbackAmount;
+    db.prepare('UPDATE users SET bonus_balance = ? WHERE telegram_id = ?').run(newBonusBalance, req.user.id);
+    
+    // Create transaction
+    db.prepare(`
+      INSERT INTO transactions (user_id, type, amount, currency, status, description)
+      VALUES (?, 'cashback', ?, 'USDT', 'completed', ?)
+    `).run(user.id, cashbackAmount, `Cashback ${cashbackPercent * 100}%`);
+    
+    res.json({
+      success: true,
+      cashback_amount: cashbackAmount,
+      new_bonus_balance: newBonusBalance
+    });
+  } catch (error) {
+    console.error('Claim cashback error:', error);
+    res.status(500).json({ error: 'Failed to claim cashback' });
   }
 });
 

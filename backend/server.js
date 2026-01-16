@@ -6,6 +6,8 @@ import { dirname, join } from 'path';
 import { initDatabase } from './database/db.js';
 import { initBot } from './bot/bot.js';
 import apiRoutes from './routes/api.js';
+import adminRoutes from './routes/admin.js';
+import gamesRoutes from './routes/games.js';
 
 dotenv.config();
 
@@ -25,6 +27,7 @@ app.use('/materials', express.static(join(__dirname, '../src/materials')));
 
 // API Routes
 app.use('/api', apiRoutes);
+app.use('/api/games', gamesRoutes);
 
 // Health check
 app.get('/health', (req, res) => {

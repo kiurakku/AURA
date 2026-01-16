@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import './CrashGame.css';
 import { api } from '../../utils/api';
+import { shareWin } from '../../utils/shareWin';
 
-function CrashGame({ initData, onBack, onBalanceUpdate }) {
+function CrashGame({ initData, onBack, onBalanceUpdate, botMode = false }) {
   const [betAmount, setBetAmount] = useState(1.0);
   const [autoCashout, setAutoCashout] = useState(null);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -46,9 +47,10 @@ function CrashGame({ initData, onBack, onBalanceUpdate }) {
     gameStartTime.current = Date.now();
 
     try {
-      // Start game on server
-      const response = await api.post('/games/crash', {
-        bet_amount: betAmount,
+      // Start game on server (or bot mode)
+      const endpoint = botMode ? '/games/crash/bot' : '/games/crash';
+      const response = await api.post(endpoint, {
+        bet_amount: botMode ? 0 : betAmount,
         auto_cashout: autoCashout,
         action: 'start'
       }, {
@@ -56,9 +58,11 @@ function CrashGame({ initData, onBack, onBalanceUpdate }) {
       });
 
       const result = response.data;
-      setGameId(result.game_id);
-      setActualMultiplier(result.multiplier);
-      onBalanceUpdate();
+      if (!botMode) {
+        setGameId(result.game_id);
+        onBalanceUpdate();
+      }
+      setActualMultiplier(result.multiplier || result.crashed_at);
 
       // Animate multiplier
       const animate = () => {
@@ -100,6 +104,13 @@ function CrashGame({ initData, onBack, onBalanceUpdate }) {
   };
 
   const cashout = async (currentMult = null) => {
+    if (botMode) {
+      alert(`🤖 Бот вивів на ${currentMult?.toFixed(2) || multiplier.toFixed(2)}x! (Гра безкоштовна)`);
+      setIsPlaying(false);
+      setCrashed(true);
+      cancelAnimationFrame(animationRef.current);
+      return;
+    }
     if (!isPlaying || crashed || !gameId) return;
     
     const cashoutMult = currentMult || multiplier;
@@ -121,7 +132,13 @@ function CrashGame({ initData, onBack, onBalanceUpdate }) {
       onBalanceUpdate();
       fetchHistory();
       
-      alert(`💰 Ви вивели кошти! Множник: ${result.multiplier.toFixed(2)}x. Виграш: ${result.win_amount.toFixed(2)} USDT`);
+      if (result.win_amount > 0) {
+        alert(`💰 Ви вивели кошти! Множник: ${result.multiplier.toFixed(2)}x. Виграш: ${result.win_amount.toFixed(2)} USDT`);
+        // Offer to share win
+        if (window.confirm('Поділитися виграшем з друзями?')) {
+          shareWin(initData, gameId, result.win_amount, 'crash');
+        }
+      }
     } catch (error) {
       console.error('Cashout error:', error);
       alert(error.response?.data?.error || 'Помилка виводу');

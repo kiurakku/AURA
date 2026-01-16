@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import './MinesGame.css';
 import { api } from '../../utils/api';
+import { shareWin } from '../../utils/shareWin';
 
-function MinesGame({ initData, onBack, onBalanceUpdate }) {
+function MinesGame({ initData, onBack, onBalanceUpdate, botMode = false }) {
   const [betAmount, setBetAmount] = useState(1.0);
   const [mineCount, setMineCount] = useState(3);
   const [gridSize] = useState(25);
@@ -18,8 +19,9 @@ function MinesGame({ initData, onBack, onBalanceUpdate }) {
     
     setLoading(true);
     try {
-      const response = await api.post('/games/mines', {
-        bet_amount: betAmount,
+      const endpoint = botMode ? '/games/mines/bot' : '/games/mines';
+      const response = await api.post(endpoint, {
+        bet_amount: botMode ? 0 : betAmount,
         mine_count: mineCount,
         grid_size: gridSize,
         action: 'start'
@@ -28,13 +30,19 @@ function MinesGame({ initData, onBack, onBalanceUpdate }) {
       });
 
       const data = response.data;
-      setGameId(data.game_id);
+      if (!botMode) {
+        setGameId(data.game_id);
+        onBalanceUpdate();
+      }
       setIsPlaying(true);
       setRevealed(new Set());
       // Mines positions are stored on server, we don't need to store them on client
       setMines([]);
       setGameResult(null);
-      onBalanceUpdate();
+      if (botMode && data.bot_revealed) {
+        // Show bot's revealed cells
+        setRevealed(new Set(data.bot_revealed));
+      }
     } catch (error) {
       console.error('Start game error:', error);
       alert(error.response?.data?.error || 'Помилка запуску гри');
@@ -48,8 +56,9 @@ function MinesGame({ initData, onBack, onBalanceUpdate }) {
 
     setLoading(true);
     try {
-      const response = await api.post('/games/mines', {
-        game_id: gameId,
+      const endpoint = botMode ? '/games/mines/bot' : '/games/mines';
+      const response = await api.post(endpoint, {
+        game_id: botMode ? null : gameId,
         action: 'reveal',
         cell_index: index
       }, {
@@ -111,6 +120,10 @@ function MinesGame({ initData, onBack, onBalanceUpdate }) {
       setGameResult({ won: true, multiplier: data.multiplier });
       onBalanceUpdate();
       alert(`💰 Ви вивели кошти! Множник: ${data.multiplier.toFixed(2)}x`);
+      // Offer to share win
+      if (data.win_amount > 0 && window.confirm('Поділитися виграшем з друзями?')) {
+        shareWin(initData, gameId, data.win_amount, 'mines');
+      }
     } catch (error) {
       console.error('Cashout error:', error);
       alert(error.response?.data?.error || 'Помилка виводу');

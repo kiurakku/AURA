@@ -57,16 +57,27 @@ export async function getDatabase() {
             if (sql.includes('referred_by')) {
               // INSERT INTO users (telegram_id, username, first_name, referral_code, referred_by) VALUES (?, ?, ?, ?, ?)
               const [telegram_id, username, first_name, referral_code, referred_by] = paramsArray;
-              db.users.create({ telegram_id, username, first_name, referral_code, referred_by, balance: 0, bonus_balance: 0, is_admin: 0, is_banned: 0 });
+              db.users.create({ telegram_id, username, first_name, referral_code, referred_by, balance: 0, bonus_balance: 0, is_admin: 0, is_banned: 0, total_wagered: 0, total_xp: 0, rank_id: 1, rank_name: 'Newbie' });
+            } else if (sql.includes('total_wagered')) {
+              // INSERT INTO users (telegram_id, username, first_name, last_name, photo_url, referral_code, referred_by, balance, bonus_balance, total_wagered, total_xp, rank_id, rank_name) VALUES (...)
+              const [telegram_id, username, first_name, last_name, photo_url, referral_code, referred_by, balance, bonus_balance, total_wagered, total_xp, rank_id, rank_name] = paramsArray;
+              db.users.create({ telegram_id, username, first_name, last_name, photo_url, referral_code, referred_by, balance, bonus_balance, total_wagered, total_xp, rank_id, rank_name, is_admin: 0, is_banned: 0 });
             } else {
               // INSERT INTO users (telegram_id, username, first_name, last_name, photo_url, referral_code) VALUES (?, ?, ?, ?, ?, ?)
               const [telegram_id, username, first_name, last_name, photo_url, referral_code] = paramsArray;
-              db.users.create({ telegram_id, username, first_name, last_name, photo_url, referral_code, balance: 0, bonus_balance: 0, is_admin: 0, is_banned: 0 });
+              db.users.create({ telegram_id, username, first_name, last_name, photo_url, referral_code, balance: 0, bonus_balance: 0, is_admin: 0, is_banned: 0, total_wagered: 0, total_xp: 0, rank_id: 1, rank_name: 'Newbie' });
             }
           }
           if (sql.includes('UPDATE users') && sql.includes('SET balance')) {
             const [balance, telegram_id] = paramsArray;
             db.users.update({ telegram_id }, { balance });
+          }
+          if (sql.includes('UPDATE users') && sql.includes('SET total_wagered')) {
+            const [total_wagered, total_xp, rank_id, rank_name, telegram_id] = paramsArray;
+            db.users.update({ telegram_id }, { total_wagered, total_xp, rank_id, rank_name });
+          }
+          if (sql.includes('SELECT * FROM users') && !sql.includes('WHERE')) {
+            return db.users.findAll();
           }
           if (sql.includes('UPDATE users') && sql.includes('SET bonus_balance')) {
             // Check if it's an increment operation (bonus_balance + ?)

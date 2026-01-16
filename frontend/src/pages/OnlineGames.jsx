@@ -1,11 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import './OnlineGames.css';
 import { api } from '../utils/api';
+import CrashGame from '../components/games/CrashGame';
+import DiceGame from '../components/games/DiceGame';
+import MinesGame from '../components/games/MinesGame';
 
 function OnlineGames({ user, initData, onBalanceUpdate }) {
   const [activeRooms, setActiveRooms] = useState([]);
   const [myRoom, setMyRoom] = useState(null);
   const [searching, setSearching] = useState(false);
+  const [gameMode, setGameMode] = useState(null); // 'free' or 'paid'
+  const [selectedGame, setSelectedGame] = useState(null);
 
   useEffect(() => {
     fetchActiveRooms();
@@ -66,7 +71,42 @@ function OnlineGames({ user, initData, onBalanceUpdate }) {
     }
   };
 
+  const playWithBot = (gameId) => {
+    setGameMode('free');
+    setSelectedGame(gameId);
+  };
+
   const onlineGames = [
+    { 
+      id: 'crash', 
+      name: 'Crash з ботом', 
+      icon: '🚀', 
+      description: 'Грай Crash з ботом безкоштовно',
+      minBet: 0,
+      maxPlayers: 2,
+      theme: 'cyber',
+      canPlayWithBot: true
+    },
+    { 
+      id: 'dice', 
+      name: 'Dice з ботом', 
+      icon: '🎲', 
+      description: 'Грай Dice з ботом безкоштовно',
+      minBet: 0,
+      maxPlayers: 2,
+      theme: 'frost',
+      canPlayWithBot: true
+    },
+    { 
+      id: 'mines', 
+      name: 'Mines з ботом', 
+      icon: '💣', 
+      description: 'Грай Mines з ботом безкоштовно',
+      minBet: 0,
+      maxPlayers: 2,
+      theme: 'neon',
+      canPlayWithBot: true
+    },
     { 
       id: 'telegram-battle', 
       name: 'Telegram Battle', 
@@ -74,7 +114,8 @@ function OnlineGames({ user, initData, onBalanceUpdate }) {
       description: 'Битва між гравцями в реальному часі',
       minBet: 5,
       maxPlayers: 4,
-      theme: 'telegram'
+      theme: 'telegram',
+      canPlayWithBot: false
     },
     { 
       id: 'cyber-crash', 
@@ -83,7 +124,8 @@ function OnlineGames({ user, initData, onBalanceUpdate }) {
       description: 'Crash з іншими гравцями',
       minBet: 10,
       maxPlayers: 10,
-      theme: 'cyber'
+      theme: 'cyber',
+      canPlayWithBot: false
     },
     { 
       id: 'frost-dice', 
@@ -92,7 +134,8 @@ function OnlineGames({ user, initData, onBalanceUpdate }) {
       description: 'Dice в арктичному стилі',
       minBet: 3,
       maxPlayers: 6,
-      theme: 'frost'
+      theme: 'frost',
+      canPlayWithBot: false
     },
     { 
       id: 'neon-roulette', 
@@ -101,9 +144,71 @@ function OnlineGames({ user, initData, onBalanceUpdate }) {
       description: 'Рулетка з неоновими ефектами',
       minBet: 15,
       maxPlayers: 8,
-      theme: 'neon'
+      theme: 'neon',
+      canPlayWithBot: false
     }
   ];
+
+  // Render game component if playing with bot
+  if (gameMode === 'free' && selectedGame) {
+    if (selectedGame === 'crash') {
+      return (
+        <div>
+          <button className="back-btn" onClick={() => { setGameMode(null); setSelectedGame(null); }}>
+            ← Назад до онлайн ігор
+          </button>
+          <div className="bot-game-notice glass-card">
+            <h3>🤖 Гра з ботом (безкоштовно)</h3>
+            <p>Ви граєте з ботом безкоштовно. Гроші не списуються та не нараховуються.</p>
+          </div>
+          <CrashGame 
+            initData={initData} 
+            onBack={() => { setGameMode(null); setSelectedGame(null); }} 
+            onBalanceUpdate={onBalanceUpdate}
+            botMode={true}
+          />
+        </div>
+      );
+    }
+    if (selectedGame === 'dice') {
+      return (
+        <div>
+          <button className="back-btn" onClick={() => { setGameMode(null); setSelectedGame(null); }}>
+            ← Назад до онлайн ігор
+          </button>
+          <div className="bot-game-notice glass-card">
+            <h3>🤖 Гра з ботом (безкоштовно)</h3>
+            <p>Ви граєте з ботом безкоштовно. Гроші не списуються та не нараховуються.</p>
+          </div>
+          <DiceGame 
+            initData={initData} 
+            onBack={() => { setGameMode(null); setSelectedGame(null); }} 
+            onBalanceUpdate={onBalanceUpdate}
+            botMode={true}
+          />
+        </div>
+      );
+    }
+    if (selectedGame === 'mines') {
+      return (
+        <div>
+          <button className="back-btn" onClick={() => { setGameMode(null); setSelectedGame(null); }}>
+            ← Назад до онлайн ігор
+          </button>
+          <div className="bot-game-notice glass-card">
+            <h3>🤖 Гра з ботом (безкоштовно)</h3>
+            <p>Ви граєте з ботом безкоштовно. Гроші не списуються та не нараховуються.</p>
+          </div>
+          <MinesGame 
+            initData={initData} 
+            onBack={() => { setGameMode(null); setSelectedGame(null); }} 
+            onBalanceUpdate={onBalanceUpdate}
+            botMode={true}
+          />
+        </div>
+      );
+    }
+  }
 
   if (myRoom) {
     return (
@@ -128,7 +233,7 @@ function OnlineGames({ user, initData, onBalanceUpdate }) {
   return (
     <div className="online-games-page fade-in">
       <h1 className="page-title">🌐 Онлайн ігри</h1>
-      <p className="page-subtitle">Змагайся з іншими гравцями в реальному часі!</p>
+      <p className="page-subtitle">Змагайся з іншими гравцями в реальному часі або грай з ботами безкоштовно!</p>
 
       {/* Active Rooms */}
       {activeRooms.length > 0 && (
@@ -176,22 +281,41 @@ function OnlineGames({ user, initData, onBalanceUpdate }) {
               <h3 className="game-name">{game.name}</h3>
               <p className="game-description">{game.description}</p>
               <div className="game-info">
-                <div className="info-item">
-                  <span>Мін. ставка:</span>
-                  <span>{game.minBet} USDT</span>
-                </div>
-                <div className="info-item">
-                  <span>Гравців:</span>
-                  <span>до {game.maxPlayers}</span>
-                </div>
+                {game.canPlayWithBot ? (
+                  <div className="info-item">
+                    <span>🤖</span>
+                    <span>Гра з ботом (безкоштовно)</span>
+                  </div>
+                ) : (
+                  <>
+                    <div className="info-item">
+                      <span>Мін. ставка:</span>
+                      <span>{game.minBet} USDT</span>
+                    </div>
+                    <div className="info-item">
+                      <span>Гравців:</span>
+                      <span>до {game.maxPlayers}</span>
+                    </div>
+                  </>
+                )}
               </div>
-              <button 
-                className="btn btn-primary create-room-btn"
-                onClick={() => createRoom(game.id, game.minBet)}
-                disabled={searching}
-              >
-                Створити кімнату
-              </button>
+              {game.canPlayWithBot ? (
+                <button 
+                  className="btn btn-primary create-room-btn"
+                  onClick={() => playWithBot(game.id)}
+                  disabled={searching}
+                >
+                  🤖 Грати з ботом
+                </button>
+              ) : (
+                <button 
+                  className="btn btn-primary create-room-btn"
+                  onClick={() => createRoom(game.id, game.minBet)}
+                  disabled={searching}
+                >
+                  Створити кімнату
+                </button>
+              )}
             </div>
           ))}
         </div>

@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import './DiceGame.css';
 import { api } from '../../utils/api';
+import { shareWin } from '../../utils/shareWin';
 
-function DiceGame({ initData, onBack, onBalanceUpdate }) {
+function DiceGame({ initData, onBack, onBalanceUpdate, botMode = false }) {
   const [betAmount, setBetAmount] = useState(1.0);
   const [prediction, setPrediction] = useState('over');
   const [target, setTarget] = useState(50);
@@ -18,8 +19,9 @@ function DiceGame({ initData, onBack, onBalanceUpdate }) {
     // Animate dice roll
     setTimeout(async () => {
       try {
-        const response = await api.post('/games/dice', {
-          bet_amount: betAmount,
+        const endpoint = botMode ? '/games/dice/bot' : '/games/dice';
+        const response = await api.post(endpoint, {
+          bet_amount: botMode ? 0 : betAmount,
           prediction,
           target
         }, {
@@ -29,12 +31,19 @@ function DiceGame({ initData, onBack, onBalanceUpdate }) {
         const data = response.data;
         setResult(data);
         setIsRolling(false);
-        onBalanceUpdate();
+        if (!botMode) {
+          onBalanceUpdate();
+        }
 
-        if (data.won) {
-          alert(`Ви виграли ${data.win_amount.toFixed(2)} USDT!`);
+        if (botMode) {
+          const botWon = data.bot_won ? 'виграв' : 'програв';
+          alert(`🤖 Результат: ${data.result}. Ви ${data.won ? 'виграли' : 'програли'}, бот ${botWon}. (Гра безкоштовна)`);
         } else {
-          alert(`Ви програли. Результат: ${data.result}`);
+          if (data.won) {
+            alert(`Ви виграли ${data.win_amount.toFixed(2)} USDT!`);
+          } else {
+            alert(`Ви програли. Результат: ${data.result}`);
+          }
         }
       } catch (error) {
         console.error('Dice error:', error);

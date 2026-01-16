@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import './Home.css';
 import { api } from '../utils/api';
+import Leaderboard from './Leaderboard';
+import Tournaments from './Tournaments';
 
 function Home({ user }) {
   const [recentWins, setRecentWins] = useState([]);
