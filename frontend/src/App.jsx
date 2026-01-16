@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import './App.css';
 import Header from './components/Header';
+import ErrorBoundary from './components/ErrorBoundary';
 import Home from './pages/Home';
 import Games from './pages/Games';
 import Wallet from './pages/Wallet';
@@ -96,20 +97,23 @@ function App() {
   }
 
   return (
-    <div className="app">
-      <Header 
-        user={user} 
-        balance={balance.total} 
-        onDeposit={() => setActiveTab('wallet')}
-      />
-      
-      <main className="main-content">
-        {activeTab === 'home' && <Home user={user} initData={initData} onBalanceUpdate={updateBalance} />}
-        {activeTab === 'games' && <Games user={user} initData={initData} onBalanceUpdate={updateBalance} />}
-        {activeTab === 'wallet' && <Wallet user={user} initData={initData} onBalanceUpdate={updateBalance} />}
-        {activeTab === 'referral' && <Referral user={user} initData={initData} />}
-        {activeTab === 'profile' && <Profile user={user} initData={initData} />}
-      </main>
+    <ErrorBoundary>
+      <div className="app">
+        <Header 
+          user={user} 
+          balance={balance.total} 
+          onDeposit={() => setActiveTab('wallet')}
+        />
+        
+        <main className="main-content">
+          <ErrorBoundary>
+            {activeTab === 'home' && <Home user={user} initData={initData} onBalanceUpdate={updateBalance} />}
+            {activeTab === 'games' && <Games user={user} initData={initData} onBalanceUpdate={updateBalance} />}
+            {activeTab === 'wallet' && <Wallet user={user} initData={initData} onBalanceUpdate={updateBalance} />}
+            {activeTab === 'referral' && <Referral user={user} initData={initData} />}
+            {activeTab === 'profile' && <Profile user={user} initData={initData} />}
+          </ErrorBoundary>
+        </main>
 
       <nav className="bottom-nav">
         <button 
@@ -148,7 +152,8 @@ function App() {
           <span className="nav-label">{t('nav.profile')}</span>
         </button>
       </nav>
-    </div>
+      </div>
+    </ErrorBoundary>
   );
 }
 
