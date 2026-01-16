@@ -7,7 +7,7 @@ import Wallet from './pages/Wallet';
 import Referral from './pages/Referral';
 import Profile from './pages/Profile';
 import { api } from './utils/api';
-import { getLanguage, setLanguage } from './utils/i18n';
+import { getLanguage, setLanguage, t } from './utils/i18n';
 
 function App() {
   const [user, setUser] = useState(null);
@@ -29,7 +29,7 @@ function App() {
     // Set language from Telegram if available
     if (window.Telegram?.WebApp) {
       const tg = window.Telegram.WebApp;
-      const lang = tg.initDataUnsafe?.user?.language_code || 'uk';
+      const lang = tg.initDataUnsafe?.user?.language_code || 'en';
       const langMap = {
         'uk': 'uk',
         'ru': 'ru',
@@ -38,7 +38,7 @@ function App() {
         'de': 'de',
         'es': 'es'
       };
-      const mappedLang = langMap[lang] || langMap[lang.split('-')[0]] || 'uk';
+      const mappedLang = langMap[lang] || langMap[lang.split('-')[0]] || 'en';
       if (mappedLang !== currentLanguage) {
         setLanguage(mappedLang);
         setCurrentLanguage(mappedLang);
@@ -132,28 +132,28 @@ function App() {
           onClick={() => setActiveTab('games')}
         >
           <span className="nav-icon">🎰</span>
-          <span className="nav-label">Ігри</span>
+          <span className="nav-label">{t('nav.games')}</span>
         </button>
         <button 
           className={`nav-item ${activeTab === 'wallet' ? 'active' : ''}`}
           onClick={() => setActiveTab('wallet')}
         >
           <span className="nav-icon">💰</span>
-          <span className="nav-label">Гаманець</span>
+          <span className="nav-label">{t('nav.wallet')}</span>
         </button>
         <button 
           className={`nav-item ${activeTab === 'referral' ? 'active' : ''}`}
           onClick={() => setActiveTab('referral')}
         >
           <span className="nav-icon">👥</span>
-          <span className="nav-label">Реферали</span>
+          <span className="nav-label">{t('nav.referral')}</span>
         </button>
         <button 
           className={`nav-item ${activeTab === 'profile' ? 'active' : ''}`}
           onClick={() => setActiveTab('profile')}
         >
           <span className="nav-icon">👤</span>
-          <span className="nav-label">Профіль</span>
+          <span className="nav-label">{t('nav.profile')}</span>
         </button>
       </nav>
     </div>

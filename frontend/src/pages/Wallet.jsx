@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import './Wallet.css';
 import { api } from '../utils/api';
+import { t } from '../utils/i18n';
 
 function Wallet({ user, initData, onBalanceUpdate }) {
   const [transactions, setTransactions] = useState([]);
@@ -85,12 +86,12 @@ function Wallet({ user, initData, onBalanceUpdate }) {
 
   return (
     <div className="wallet-page fade-in">
-      <h1 className="page-title">💰 Гаманець</h1>
+      <h1 className="page-title">💰 {t('wallet.title')}</h1>
 
       {/* Balance Card */}
       <div className="balance-card glass-card">
         <div className="balance-header">
-          <span className="balance-label">Ваш баланс</span>
+          <span className="balance-label">{t('wallet.balance')}</span>
           <span className="balance-eye">👁️</span>
         </div>
         <div className="balance-main">
@@ -101,7 +102,7 @@ function Wallet({ user, initData, onBalanceUpdate }) {
         </div>
         {user?.bonus_balance > 0 && (
           <div className="bonus-balance">
-            <span className="bonus-label">Бонусний баланс:</span>
+            <span className="bonus-label">{t('wallet.bonusBalance')}:</span>
             <span className="bonus-value">{user.bonus_balance.toFixed(2)} {selectedCurrency}</span>
           </div>
         )}
@@ -111,7 +112,7 @@ function Wallet({ user, initData, onBalanceUpdate }) {
       <div className="wallet-actions">
         <button className="btn btn-primary deposit-btn" onClick={handleDeposit}>
           <span className="btn-icon">+</span>
-          <span>Поповнити</span>
+          <span>{t('wallet.deposit')}</span>
         </button>
         <button 
           className="btn btn-secondary withdraw-btn"
@@ -119,13 +120,13 @@ function Wallet({ user, initData, onBalanceUpdate }) {
           disabled={loading}
         >
           <span className="btn-icon">→</span>
-          <span>{loading ? 'Обробка...' : 'Вивести'}</span>
+          <span>{loading ? t('wallet.processing') : t('wallet.withdraw')}</span>
         </button>
       </div>
 
       {/* Currency Selection */}
       <div className="currency-selector glass-card">
-        <h3 className="selector-title">Криптовалюти</h3>
+        <h3 className="selector-title">{t('wallet.cryptocurrencies')}</h3>
         <div className="currency-grid">
           {currencies.map((currency) => (
             <button
@@ -162,8 +163,8 @@ function Wallet({ user, initData, onBalanceUpdate }) {
 
       {/* Bonus Coins Section */}
       <div className="bonus-coins-section glass-card">
-        <h3 className="selector-title">🎁 Бонусні монети</h3>
-        <p className="bonus-coins-description">Системні валюти для покращення ігрового досвіду</p>
+        <h3 className="selector-title">🎁 {t('wallet.bonusCoins')}</h3>
+        <p className="bonus-coins-description">{t('wallet.bonusCoinsDescription')}</p>
         <div className="bonus-coins-grid">
           {bonusCoins.map((coin) => (
             <div key={coin.id} className="bonus-coin-card">
@@ -202,7 +203,7 @@ function Wallet({ user, initData, onBalanceUpdate }) {
 
       {/* Withdraw Form */}
       <div className="withdraw-section glass-card">
-        <h2 className="section-title">Вивести кошти</h2>
+            <h2 className="section-title">{t('wallet.withdrawSection')}</h2>
         <div className="withdraw-form">
           <div className="form-group">
             <label>Сума ({selectedCurrency})</label>
@@ -217,28 +218,28 @@ function Wallet({ user, initData, onBalanceUpdate }) {
             />
           </div>
           <div className="form-group">
-            <label>Адреса гаманця</label>
-            <input
-              type="text"
-              className="input"
-              value={withdrawAddress}
-              onChange={(e) => setWithdrawAddress(e.target.value)}
-              placeholder={`Введіть адресу ${selectedCurrency} гаманця`}
-            />
+                <label>{t('wallet.address')}</label>
+                <input
+                  type="text"
+                  className="input"
+                  value={withdrawAddress}
+                  onChange={(e) => setWithdrawAddress(e.target.value)}
+                  placeholder={t('wallet.enterAddress', { currency: selectedCurrency })}
+                />
           </div>
           <button 
             className="btn btn-secondary withdraw-submit-btn"
             onClick={handleWithdraw}
             disabled={loading}
           >
-            {loading ? 'Обробка...' : 'Вивести'}
+                {loading ? t('wallet.processing') : t('wallet.withdraw')}
           </button>
         </div>
       </div>
 
       {/* Transactions History */}
       <div className="transactions-section">
-        <h2 className="section-title">Історія транзакцій</h2>
+            <h2 className="section-title">{t('wallet.transactions')}</h2>
         <div className="transactions-list glass-card">
           {transactions.length === 0 ? (
             <div className="empty-state">

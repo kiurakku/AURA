@@ -319,7 +319,7 @@ function Games({ user, initData, onBalanceUpdate }) {
 
   return (
     <div className="games-page fade-in">
-      <h1 className="page-title">🎮 Бібліотека ігор</h1>
+      <h1 className="page-title">🎮 {t('games.title')}</h1>
       
       {/* Пошук */}
       <div className="games-search">

@@ -124,6 +124,14 @@ const translations = {
       deposit: 'Пополнить',
       withdraw: 'Вывести',
       currency: 'Выбор валюты',
+      cryptocurrencies: 'Криптовалюты',
+      bonusCoins: 'Бонусные монеты',
+      bonusCoinsDescription: 'Системные валюты для улучшения игрового опыта',
+      withdrawSection: 'Вывести средства',
+      amount: 'Сумма',
+      address: 'Адрес кошелька',
+      enterAddress: 'Введите адрес {currency} кошелька',
+      processing: 'Обработка...',
       transactions: 'История транзакций',
       empty: 'Нет транзакций'
     },
@@ -197,6 +205,14 @@ const translations = {
       deposit: 'Deposit',
       withdraw: 'Withdraw',
       currency: 'Currency Selection',
+      cryptocurrencies: 'Cryptocurrencies',
+      bonusCoins: 'Bonus Coins',
+      bonusCoinsDescription: 'System currencies to enhance gaming experience',
+      withdrawSection: 'Withdraw Funds',
+      amount: 'Amount',
+      address: 'Wallet Address',
+      enterAddress: 'Enter {currency} wallet address',
+      processing: 'Processing...',
       transactions: 'Transaction History',
       empty: 'No transactions'
     },
@@ -447,12 +463,12 @@ const translations = {
   }
 };
 
-// Get language from localStorage or default to Ukrainian
+// Get language from localStorage or default to English
 export function getLanguage() {
   if (typeof window !== 'undefined') {
-    return localStorage.getItem('language') || 'uk';
+    return localStorage.getItem('language') || 'en';
   }
-  return 'uk';
+  return 'en';
 }
 
 // Set language
@@ -471,10 +487,17 @@ export function t(key, lang = null) {
   for (const k of keys) {
     value = value?.[k];
     if (!value) {
-      // Fallback to Ukrainian
-      value = translations.uk;
+      // Fallback to English
+      value = translations.en;
       for (const k2 of keys) {
         value = value?.[k2];
+      }
+      if (!value) {
+        // Final fallback to Ukrainian if English also fails
+        value = translations.uk;
+        for (const k3 of keys) {
+          value = value?.[k3];
+        }
       }
       break;
     }
