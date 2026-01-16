@@ -114,12 +114,41 @@
 }
 
 .deposit-btn {
-  background: linear-gradient(135deg, var(--accent-cyan-start), var(--accent-cyan-end));
+  background: linear-gradient(180deg, var(--accent-purple-start) 0%, var(--accent-cyan-start) 50%, var(--accent-cyan-end) 100%);
   box-shadow: var(--shadow-glow-cyan);
+  border: none;
+  color: white;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  position: relative;
+  overflow: hidden;
+}
+
+.deposit-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(180deg, rgba(138, 43, 226, 0.3) 0%, rgba(0, 255, 255, 0.3) 100%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.deposit-btn:hover::before {
+  opacity: 1;
 }
 
 .deposit-btn:hover {
-  box-shadow: 0 0 40px rgba(0, 255, 255, 0.8);
+  box-shadow: 0 0 40px rgba(0, 255, 255, 0.8), 0 0 20px rgba(138, 43, 226, 0.6);
+  transform: translateY(-2px);
+}
+
+.deposit-btn span {
+  position: relative;
+  z-index: 1;
 }
 
 .withdraw-btn {
