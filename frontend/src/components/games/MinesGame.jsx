@@ -62,7 +62,7 @@ function MinesGame({ initData, onBack, onBalanceUpdate, botMode = false }) {
 
     setLoading(true);
     try {
-      const endpoint = botMode ? '/games/mines/bot' : '/games/mines';
+      const endpoint = botMode ? '/api/games/mines/bot' : '/api/games/mines';
       const response = await api.post(endpoint, {
         game_id: botMode ? null : gameId,
         action: 'reveal',
