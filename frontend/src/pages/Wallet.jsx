@@ -11,8 +11,10 @@ function Wallet({ user, initData, onBalanceUpdate }) {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    fetchTransactions();
-  }, []);
+    if (initData) {
+      fetchTransactions();
+    }
+  }, [initData]);
 
   const fetchTransactions = async () => {
     if (!initData) return;

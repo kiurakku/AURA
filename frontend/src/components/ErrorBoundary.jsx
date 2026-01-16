@@ -11,7 +11,10 @@ class ErrorBoundary extends React.Component {
   }
 
   componentDidCatch(error, errorInfo) {
-    // Error logged silently
+    // Reset error state after a delay to allow recovery
+    setTimeout(() => {
+      this.setState({ hasError: false });
+    }, 1000);
   }
 
   render() {
