@@ -127,13 +127,13 @@ function Games({ user, initData, onBalanceUpdate }) {
     }
   }, []);
 
-  const categories = [
+  const categories = useMemo(() => [
     { id: 'all', name: t('games.all'), icon: '🎮' },
     { id: 'slots', name: t('games.slots'), icon: '🎰' },
     { id: 'table', name: t('games.table'), icon: '🃏' },
     { id: 'quick', name: t('games.quick'), icon: '⚡' },
     { id: 'favorites', name: t('games.favorites'), icon: '⭐' }
-  ];
+  ], []);
 
   const allGames = [
     // Соло ігри
