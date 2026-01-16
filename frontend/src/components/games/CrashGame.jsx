@@ -136,7 +136,7 @@ function CrashGame({ initData, onBack, onBalanceUpdate, botMode = false }) {
         alert(`💰 Ви вивели кошти! Множник: ${result.multiplier.toFixed(2)}x. Виграш: ${result.win_amount.toFixed(2)} USDT`);
         // Offer to share win
         if (window.confirm('Поділитися виграшем з друзями?')) {
-          shareWin(initData, gameId, result.win_amount, 'crash');
+          shareWin('Crash', result.win_amount, result.multiplier);
         }
       }
     } catch (error) {
