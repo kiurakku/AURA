@@ -174,7 +174,8 @@ export async function initBot() {
     };
 
     // Send photo with message
-    const photoPath = process.env.START_PHOTO_URL || `${process.env.TELEGRAM_WEBAPP_URL || 'https://auraslots.fly.dev'}/materials/Start.jpeg`;
+    const baseUrl = process.env.TELEGRAM_WEBAPP_URL || 'https://auraslots.fly.dev';
+    const photoPath = process.env.START_PHOTO_URL || `${baseUrl}/materials/Start.jpeg`;
     
     try {
       // Try to send photo first
@@ -183,9 +184,11 @@ export async function initBot() {
         parse_mode: 'Markdown',
         reply_markup: keyboard
       });
+      console.log('✅ Photo sent successfully:', photoPath);
     } catch (error) {
       // If photo fails, send text only
-      console.log('Failed to send photo, sending text only:', error.message);
+      console.log('⚠️ Failed to send photo, sending text only:', error.message);
+      console.log('Photo path was:', photoPath);
       bot.sendMessage(chatId, welcomeText, {
         parse_mode: 'Markdown',
         reply_markup: keyboard
