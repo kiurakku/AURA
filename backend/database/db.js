@@ -114,8 +114,14 @@ export async function getDatabase() {
             db.users.update({ telegram_id }, { privacy_settings });
           }
           if (sql.includes('INSERT INTO transactions')) {
-            const [user_id, type, amount, status, description] = paramsArray;
-            db.transactions.create({ user_id, type, amount, currency: 'USDT', status, description });
+            // Check if currency is provided (6 params) or not (5 params)
+            if (paramsArray.length === 6) {
+              const [user_id, type, amount, currency, status, description] = paramsArray;
+              db.transactions.create({ user_id, type, amount, currency: currency || 'USDT', status, description });
+            } else {
+              const [user_id, type, amount, status, description] = paramsArray;
+              db.transactions.create({ user_id, type, amount, currency: 'USDT', status, description });
+            }
           }
           if (sql.includes('INSERT INTO games')) {
             const [user_id, game_type, bet_amount, win_amount, game_data, server_seed, client_seed, result_hash] = paramsArray;

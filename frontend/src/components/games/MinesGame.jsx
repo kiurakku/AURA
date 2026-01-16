@@ -51,9 +51,23 @@ function MinesGame({ initData, onBack, onBalanceUpdate, botMode = false }) {
       }
     } catch (error) {
       console.error('Start game error:', error);
-      alert(error.response?.data?.error || 'Помилка запуску гри');
-    } finally {
       setLoading(false);
+      
+      // Check for insufficient balance
+      if (error.response?.status === 400 && error.response?.data?.error === 'Insufficient balance') {
+        if (window.Telegram?.WebApp) {
+          window.Telegram.WebApp.showAlert(
+            'Недостатньо коштів на балансі!\n\n' +
+            'Мінімальна ставка: 0.1 USDT\n' +
+            'Поповніть баланс, щоб продовжити гру.'
+          );
+          window.dispatchEvent(new CustomEvent('navigate', { detail: 'wallet' }));
+        } else {
+          alert('Недостатньо коштів на балансі! Мінімальна ставка: 0.1 USDT');
+        }
+      } else {
+        alert(error.response?.data?.error || 'Помилка запуску гри');
+      }
     }
   };
 

@@ -79,12 +79,11 @@ export async function initBot() {
             VALUES (?, ?)
           `).run(referrer.telegram_id, userId);
           
-          // Give bonus to referrer
+          // Award random referral bonus to referrer
           const referrerUser = db.prepare('SELECT * FROM users WHERE telegram_id = ?').get(referrer.telegram_id);
           if (referrerUser) {
-            db.prepare(`
-              UPDATE users SET bonus_balance = bonus_balance + ? WHERE telegram_id = ?
-            `).run(1.0, referrer.telegram_id);
+            const { awardReferralBonus } = await import('../utils/referral-bonus.js');
+            awardReferralBonus(db, referrerUser.id, referrer.telegram_id);
           }
         }
       }
@@ -342,7 +341,7 @@ export async function initBot() {
       return bot.sendMessage(chatId, 'Спочатку виконайте /start');
     }
 
-    const referralLink = `https://t.me/${bot.options.username || 'your_bot'}?start=ref_${user.referral_code}`;
+    const referralLink = `https://t.me/${bot.options.username || 'aurasfroxbot'}?start=ref_${user.referral_code}`;
     const referrals = db.prepare('SELECT COUNT(*) as count FROM referrals WHERE referrer_id = ?').get(userId);
     const referralCount = referrals?.count || 0;
 
@@ -917,7 +916,7 @@ export async function initBot() {
       });
     } else if (data.startsWith('copy_ref_')) {
       const refCode = data.replace('copy_ref_', '');
-      const referralLink = `https://t.me/${bot.options.username || 'your_bot'}?start=ref_${refCode}`;
+      const referralLink = `https://t.me/${bot.options.username || 'aurasfroxbot'}?start=ref_${refCode}`;
       bot.sendMessage(chatId, 
         `📋 *Посилання скопійовано!*\n\n` +
         `Ваше реферальне посилання:\n\`${referralLink}\`\n\n` +

@@ -152,14 +152,32 @@ router.post('/auth', async (req, res) => {
 
       user = db.prepare('SELECT * FROM users WHERE telegram_id = ?').get(userData.id);
       
-      // Give welcome bonus
+      // Give welcome bonus and referral bonus
       if (referrerId) {
-        const welcomeBonus = 1.0;
-        db.prepare('UPDATE users SET bonus_balance = bonus_balance + ? WHERE telegram_id = ?').run(welcomeBonus, userData.id);
+        // Get referrer info
+        const referrer = db.prepare('SELECT * FROM users WHERE id = ?').get(referrerId);
         
-        // Give referrer bonus
-        const referrerBonus = 0.5;
-        db.prepare('UPDATE users SET bonus_balance = bonus_balance + ? WHERE id = ?').run(referrerBonus, referrerId);
+        if (referrer) {
+          // Create referral record
+          db.prepare(`
+            INSERT OR IGNORE INTO referrals (referrer_id, referred_id)
+            VALUES (?, ?)
+          `).run(referrerId, user.id);
+          
+          // Give welcome bonus to new user
+          const welcomeBonus = 1.0;
+          db.prepare('UPDATE users SET bonus_balance = bonus_balance + ? WHERE telegram_id = ?').run(welcomeBonus, userData.id);
+          
+          // Create transaction for welcome bonus
+          db.prepare(`
+            INSERT INTO transactions (user_id, type, amount, currency, status, description)
+            VALUES (?, 'welcome_bonus', ?, 'USDT', 'completed', 'Вітальний бонус за реєстрацію')
+          `).run(user.id, welcomeBonus);
+          
+          // Award random referral bonus to referrer
+          const { awardReferralBonus } = await import('../utils/referral-bonus.js');
+          awardReferralBonus(db, referrerId, referrer.telegram_id);
+        }
       }
     } else {
       // Update user info - get fresh photo_url from Telegram if available
@@ -619,7 +637,7 @@ router.get('/referral', validateTelegramAuth, (req, res) => {
     const referrals = db.prepare('SELECT * FROM referrals WHERE referrer_id = ?').all(user.id);
     const totalEarnings = referrals.reduce((sum, ref) => sum + (ref.total_earnings || 0), 0);
     
-    const botUsername = process.env.TELEGRAM_BOT_USERNAME || 'your_bot_name';
+    const botUsername = process.env.TELEGRAM_BOT_USERNAME || 'aurasfroxbot';
     const referralLink = `https://t.me/${botUsername}?start=ref_${user.referral_code}`;
     
     res.json({
@@ -646,7 +664,7 @@ router.post('/share-win', validateTelegramAuth, async (req, res) => {
       return res.status(404).json({ error: 'User not found' });
     }
 
-    const botUsername = process.env.TELEGRAM_BOT_USERNAME || 'your_bot_name';
+    const botUsername = process.env.TELEGRAM_BOT_USERNAME || 'aurasfroxbot';
     const referralLink = `https://t.me/${botUsername}?start=ref_${user.referral_code}`;
     
     // Generate share data (frontend will create image)

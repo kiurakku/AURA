@@ -35,6 +35,23 @@ function DiceGame({ initData, onBack, onBalanceUpdate, botMode = false }) {
         });
 
         const data = response.data;
+        
+        // Check for insufficient balance error
+        if (data.error === 'Insufficient balance' || response.status === 400) {
+          setIsRolling(false);
+          if (window.Telegram?.WebApp) {
+            window.Telegram.WebApp.showAlert(
+              'Недостатньо коштів на балансі!\n\n' +
+              'Мінімальна ставка: 0.1 USDT\n' +
+              'Поповніть баланс, щоб продовжити гру.'
+            );
+            window.dispatchEvent(new CustomEvent('navigate', { detail: 'wallet' }));
+          } else {
+            alert('Недостатньо коштів на балансі! Мінімальна ставка: 0.1 USDT');
+          }
+          return;
+        }
+        
         setResult(data);
         setIsRolling(false);
         if (!botMode) {

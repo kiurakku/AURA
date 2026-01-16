@@ -28,10 +28,12 @@ function App() {
       setLanguageKey(prev => prev + 1);
     };
     
-    // Listen for navigation events from Home page
+    // Listen for navigation events from Home page and games
     const handleNavigate = (event) => {
       if (event.detail === 'games') {
         setActiveTab('games');
+      } else if (event.detail === 'wallet') {
+        setActiveTab('wallet');
       }
     };
     

@@ -117,7 +117,12 @@ export const db = {
     create: (data) => {
       const transactions = readJSON(TRANSACTIONS_FILE);
       const id = transactions.length > 0 ? Math.max(...transactions.map(t => t.id || 0)) + 1 : 1;
-      const transaction = { id, ...data, created_at: new Date().toISOString() };
+      const transaction = { 
+        id, 
+        ...data, 
+        currency: data.currency || 'USDT',
+        created_at: new Date().toISOString() 
+      };
       transactions.push(transaction);
       writeJSON(TRANSACTIONS_FILE, transactions);
       return transaction;

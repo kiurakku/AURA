@@ -65,6 +65,24 @@ function CrashGame({ initData, onBack, onBalanceUpdate, botMode = false }) {
       });
 
       const result = response.data;
+      
+      // Check for insufficient balance error
+      if (result.error === 'Insufficient balance' || response.status === 400) {
+        setIsPlaying(false);
+        if (window.Telegram?.WebApp) {
+          window.Telegram.WebApp.showAlert(
+            'Недостатньо коштів на балансі!\n\n' +
+            'Мінімальна ставка: 0.1 USDT\n' +
+            'Поповніть баланс, щоб продовжити гру.'
+          );
+          // Navigate to wallet
+          window.dispatchEvent(new CustomEvent('navigate', { detail: 'wallet' }));
+        } else {
+          alert('Недостатньо коштів на балансі! Мінімальна ставка: 0.1 USDT');
+        }
+        return;
+      }
+      
       if (!botMode) {
         setGameId(result.game_id);
         onBalanceUpdate();
