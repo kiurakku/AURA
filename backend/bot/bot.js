@@ -40,6 +40,19 @@ export async function initBot() {
   
   const db = await getDatabase();
 
+  // Helper function to get rank icon
+  function getRankIcon(rankName) {
+    const icons = {
+      'Newbie': '🟤',
+      'Gambler': '⚪',
+      'High Roller': '🟡',
+      'Pro': '💎',
+      'Elite': '👑',
+      'Aura Legend': '⭐'
+    };
+    return icons[rankName] || '🟤';
+  }
+
   // Start command
   bot.onText(/\/start(.*)/, async (msg, match) => {
     const chatId = msg.chat.id;
@@ -884,19 +897,6 @@ export async function initBot() {
   });
 
   // Handle callback queries
-  // Helper function to get rank icon
-  function getRankIcon(rankName) {
-    const icons = {
-      'Newbie': '🟤',
-      'Gambler': '⚪',
-      'High Roller': '🟡',
-      'Pro': '💎',
-      'Elite': '👑',
-      'Aura Legend': '⭐'
-    };
-    return icons[rankName] || '🟤';
-  }
-
   bot.on('callback_query', async (query) => {
     const chatId = query.message.chat.id;
     const data = query.data;
