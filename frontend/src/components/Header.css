@@ -36,8 +36,10 @@
   border: 2px solid;
   border-image: linear-gradient(135deg, var(--accent-purple-start), var(--accent-cyan-start)) 1;
   object-fit: cover;
+  object-position: center;
   box-shadow: var(--shadow-glow-purple);
   flex-shrink: 0;
+  aspect-ratio: 1 / 1;
 }
 
 .avatar-placeholder {

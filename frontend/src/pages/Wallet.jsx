@@ -53,6 +53,12 @@ function Wallet({ user, initData, onBalanceUpdate }) {
     { id: 'BTC', name: 'BTC', icon: '/materials/icons/btc.png', emoji: '₿', network: 'Bitcoin', type: 'crypto' }
   ];
 
+  // Debug: Log icon paths
+  useEffect(() => {
+    console.log('Currency icons:', currencies.map(c => ({ name: c.name, icon: c.icon })));
+    console.log('Bonus coin icons:', bonusCoins.map(c => ({ name: c.name, icon: c.icon })));
+  }, []);
+
   const bonusCoins = [
     { 
       id: 'CHANCE', 
@@ -138,12 +144,24 @@ function Wallet({ user, initData, onBalanceUpdate }) {
                   src={currency.icon} 
                   alt={currency.name}
                   onError={(e) => {
+                    console.error('Failed to load icon:', currency.icon);
                     if (e.target.nextSibling) {
                       e.target.style.display = 'none';
                       e.target.nextSibling.style.display = 'inline';
                     }
                   }}
-                  style={{ width: '32px', height: '32px', objectFit: 'contain' }}
+                  onLoad={(e) => {
+                    e.target.style.display = 'block';
+                    if (e.target.nextSibling) {
+                      e.target.nextSibling.style.display = 'none';
+                    }
+                  }}
+                  style={{ 
+                    width: '40px', 
+                    height: '40px', 
+                    objectFit: 'contain',
+                    display: 'block'
+                  }}
                 />
                 <span style={{ display: 'none', fontSize: '32px' }}>{currency.emoji}</span>
               </span>
@@ -166,12 +184,24 @@ function Wallet({ user, initData, onBalanceUpdate }) {
                   src={coin.icon} 
                   alt={coin.name}
                   onError={(e) => {
+                    console.error('Failed to load bonus coin icon:', coin.icon);
                     if (e.target.nextSibling) {
                       e.target.style.display = 'none';
                       e.target.nextSibling.style.display = 'inline';
                     }
                   }}
-                  style={{ width: '48px', height: '48px', objectFit: 'contain' }}
+                  onLoad={(e) => {
+                    e.target.style.display = 'block';
+                    if (e.target.nextSibling) {
+                      e.target.nextSibling.style.display = 'none';
+                    }
+                  }}
+                  style={{ 
+                    width: '64px', 
+                    height: '64px', 
+                    objectFit: 'contain',
+                    display: 'block'
+                  }}
                 />
                 <span style={{ display: 'none', fontSize: '48px' }}>{coin.emoji}</span>
               </div>
