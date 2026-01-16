@@ -162,7 +162,16 @@ const translations = {
       autoPlay: 'Автогра',
       autoPlayDesc: 'Автоматично продовжувати гру',
       showBalance: 'Показувати баланс',
-      showBalanceDesc: 'Відображати баланс у верхній панелі'
+      showBalanceDesc: 'Відображати баланс у верхній панелі',
+      privacyTitle: 'Налаштування конфіденційності',
+      showBalancePrivacy: 'Показувати баланс',
+      showBalancePrivacyDesc: 'Дозволити іншим бачити ваш баланс',
+      showStatsPrivacy: 'Показувати статистику',
+      showStatsPrivacyDesc: 'Дозволити іншим бачити вашу статистику',
+      allowReferrals: 'Дозволити реферали',
+      allowReferralsDesc: 'Дозволити іншим запрошувати вас через реферальні посилання',
+      dataSharing: 'Обмін даними',
+      dataSharingDesc: 'Дозволити обмін анонімними даними для покращення сервісу'
     },
     // Referral
     referral: {
@@ -372,7 +381,16 @@ const translations = {
       autoPlay: 'Auto Play',
       autoPlayDesc: 'Automatically continue playing',
       showBalance: 'Show Balance',
-      showBalanceDesc: 'Display balance in top panel'
+      showBalanceDesc: 'Display balance in top panel',
+      privacyTitle: 'Privacy Settings',
+      showBalancePrivacy: 'Show Balance',
+      showBalancePrivacyDesc: 'Allow others to see your balance',
+      showStatsPrivacy: 'Show Statistics',
+      showStatsPrivacyDesc: 'Allow others to see your statistics',
+      allowReferrals: 'Allow Referrals',
+      allowReferralsDesc: 'Allow others to invite you via referral links',
+      dataSharing: 'Data Sharing',
+      dataSharingDesc: 'Allow anonymous data sharing to improve service'
     },
     referral: {
       title: 'Referral Program',
@@ -727,7 +745,16 @@ const translations = {
       autoPlay: 'Reproducción Automática',
       autoPlayDesc: 'Continuar jugando automáticamente',
       showBalance: 'Mostrar Saldo',
-      showBalanceDesc: 'Mostrar saldo en panel superior'
+      showBalanceDesc: 'Mostrar saldo en panel superior',
+      privacyTitle: 'Configuración de Privacidad',
+      showBalancePrivacy: 'Mostrar Saldo',
+      showBalancePrivacyDesc: 'Permitir que otros vean tu saldo',
+      showStatsPrivacy: 'Mostrar Estadísticas',
+      showStatsPrivacyDesc: 'Permitir que otros vean tus estadísticas',
+      allowReferrals: 'Permitir Referidos',
+      allowReferralsDesc: 'Permitir que otros te inviten mediante enlaces de referido',
+      dataSharing: 'Compartir Datos',
+      dataSharingDesc: 'Permitir el intercambio de datos anónimos para mejorar el servicio'
     },
     referral: {
       title: 'Programa de Referidos',

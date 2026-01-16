@@ -27,6 +27,17 @@ export async function getDatabase() {
             const user = db.users.findOne({ telegram_id: params[0] });
             return user ? { balance: user.balance || 0 } : null;
           }
+          if (sql.includes('SELECT privacy_settings FROM users')) {
+            const user = db.users.findOne({ telegram_id: params[0] });
+            return user ? { privacy_settings: user.privacy_settings || null } : null;
+          }
+          if (sql.includes('SELECT id FROM users') && sql.includes('WHERE telegram_id')) {
+            const user = db.users.findOne({ telegram_id: params[0] });
+            return user ? { id: user.id } : null;
+          }
+          if (sql.includes('SELECT * FROM users') && sql.includes('WHERE telegram_id')) {
+            return db.users.findOne({ telegram_id: params[0] });
+          }
           return null;
         },
         all: (...params) => {
@@ -97,6 +108,10 @@ export async function getDatabase() {
           if (sql.includes('UPDATE users') && sql.includes('SET username')) {
             const [username, first_name, last_name, photo_url, telegram_id] = paramsArray;
             db.users.update({ telegram_id }, { username, first_name, last_name, photo_url });
+          }
+          if (sql.includes('UPDATE users') && sql.includes('SET privacy_settings')) {
+            const [privacy_settings, telegram_id] = paramsArray;
+            db.users.update({ telegram_id }, { privacy_settings });
           }
           if (sql.includes('INSERT INTO transactions')) {
             const [user_id, type, amount, status, description] = paramsArray;

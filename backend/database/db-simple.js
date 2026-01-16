@@ -89,7 +89,15 @@ export const db = {
     },
     update: (query, data) => {
       const users = readJSON(USERS_FILE);
-      const index = users.findIndex(u => u.telegram_id === query.telegram_id);
+      const index = users.findIndex(u => {
+        if (query.telegram_id !== undefined) {
+          return u.telegram_id === query.telegram_id;
+        }
+        if (query.id !== undefined) {
+          return u.id === query.id;
+        }
+        return false;
+      });
       if (index !== -1) {
         users[index] = { ...users[index], ...data, updated_at: new Date().toISOString() };
         writeJSON(USERS_FILE, users);

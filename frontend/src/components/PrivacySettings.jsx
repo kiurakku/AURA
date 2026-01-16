@@ -1,5 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './PrivacySettings.css';
+import { t } from '../utils/i18n';
+import { api } from '../utils/api';
 import LegalDocuments from './LegalDocuments';
 
 function PrivacySettings({ user, initData }) {
@@ -9,29 +11,68 @@ function PrivacySettings({ user, initData }) {
     allowReferrals: true,
     dataSharing: false
   });
+  const [loading, setLoading] = useState(false);
 
-  const togglePrivacy = (key) => {
-    setPrivacySettings(prev => ({
-      ...prev,
-      [key]: !prev[key]
-    }));
+  useEffect(() => {
+    if (user && initData) {
+      fetchPrivacySettings();
+    }
+  }, [user, initData]);
+
+  const fetchPrivacySettings = async () => {
+    try {
+      const response = await api.get('/privacy', {
+        headers: { 'x-telegram-init-data': initData }
+      });
+      if (response.data?.settings) {
+        setPrivacySettings(response.data.settings);
+      }
+    } catch (error) {
+      console.error('Failed to fetch privacy settings:', error);
+    }
+  };
+
+  const togglePrivacy = async (key) => {
+    const newSettings = {
+      ...privacySettings,
+      [key]: !privacySettings[key]
+    };
+    setPrivacySettings(newSettings);
+    
+    if (initData) {
+      setLoading(true);
+      try {
+        await api.post('/privacy', {
+          settings: newSettings
+        }, {
+          headers: { 'x-telegram-init-data': initData }
+        });
+      } catch (error) {
+        console.error('Failed to save privacy settings:', error);
+        // Revert on error
+        setPrivacySettings(privacySettings);
+      } finally {
+        setLoading(false);
+      }
+    }
   };
 
   return (
     <div className="privacy-settings">
-      <h2 className="settings-title">Налаштування конфіденційності</h2>
+      <h2 className="settings-title">{t('profile.privacyTitle')}</h2>
       
       <div className="settings-list">
         <div className="setting-item">
           <div className="setting-label">
-            <span className="setting-name">Показувати баланс</span>
-            <span className="setting-desc">Дозволити іншим бачити ваш баланс</span>
+            <span className="setting-name">{t('profile.showBalancePrivacy')}</span>
+            <span className="setting-desc">{t('profile.showBalancePrivacyDesc')}</span>
           </div>
           <label className="toggle-switch">
             <input
               type="checkbox"
               checked={privacySettings.showBalance}
               onChange={() => togglePrivacy('showBalance')}
+              disabled={loading}
             />
             <span className="toggle-slider"></span>
           </label>
@@ -39,14 +80,15 @@ function PrivacySettings({ user, initData }) {
 
         <div className="setting-item">
           <div className="setting-label">
-            <span className="setting-name">Показувати статистику</span>
-            <span className="setting-desc">Дозволити іншим бачити вашу статистику</span>
+            <span className="setting-name">{t('profile.showStatsPrivacy')}</span>
+            <span className="setting-desc">{t('profile.showStatsPrivacyDesc')}</span>
           </div>
           <label className="toggle-switch">
             <input
               type="checkbox"
               checked={privacySettings.showStats}
               onChange={() => togglePrivacy('showStats')}
+              disabled={loading}
             />
             <span className="toggle-slider"></span>
           </label>
@@ -54,14 +96,15 @@ function PrivacySettings({ user, initData }) {
 
         <div className="setting-item">
           <div className="setting-label">
-            <span className="setting-name">Дозволити реферали</span>
-            <span className="setting-desc">Дозволити іншим запрошувати вас через реферальні посилання</span>
+            <span className="setting-name">{t('profile.allowReferrals')}</span>
+            <span className="setting-desc">{t('profile.allowReferralsDesc')}</span>
           </div>
           <label className="toggle-switch">
             <input
               type="checkbox"
               checked={privacySettings.allowReferrals}
               onChange={() => togglePrivacy('allowReferrals')}
+              disabled={loading}
             />
             <span className="toggle-slider"></span>
           </label>
@@ -69,14 +112,15 @@ function PrivacySettings({ user, initData }) {
 
         <div className="setting-item">
           <div className="setting-label">
-            <span className="setting-name">Обмін даними</span>
-            <span className="setting-desc">Дозволити обмін анонімними даними для покращення сервісу</span>
+            <span className="setting-name">{t('profile.dataSharing')}</span>
+            <span className="setting-desc">{t('profile.dataSharingDesc')}</span>
           </div>
           <label className="toggle-switch">
             <input
               type="checkbox"
               checked={privacySettings.dataSharing}
               onChange={() => togglePrivacy('dataSharing')}
+              disabled={loading}
             />
             <span className="toggle-slider"></span>
           </label>

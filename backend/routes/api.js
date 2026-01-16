@@ -766,4 +766,62 @@ router.post('/cashback/claim', validateTelegramAuth, async (req, res) => {
   }
 });
 
+// Get privacy settings
+router.get('/privacy', validateTelegramAuth, async (req, res) => {
+  try {
+    if (!db) db = await getDatabase();
+    
+    const user = db.prepare('SELECT privacy_settings FROM users WHERE telegram_id = ?').get(req.user.id);
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    
+    const settings = user.privacy_settings ? JSON.parse(user.privacy_settings) : {
+      showBalance: true,
+      showStats: true,
+      allowReferrals: true,
+      dataSharing: false
+    };
+    
+    res.json({ settings });
+  } catch (error) {
+    console.error('Privacy settings error:', error);
+    res.status(500).json({ error: 'Failed to get privacy settings' });
+  }
+});
+
+// Update privacy settings
+router.post('/privacy', validateTelegramAuth, async (req, res) => {
+  try {
+    const { settings } = req.body;
+    
+    if (!settings || typeof settings !== 'object') {
+      return res.status(400).json({ error: 'Invalid settings' });
+    }
+    
+    if (!db) db = await getDatabase();
+    
+    const user = db.prepare('SELECT id FROM users WHERE telegram_id = ?').get(req.user.id);
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    
+    // Validate settings
+    const validSettings = {
+      showBalance: settings.showBalance !== undefined ? Boolean(settings.showBalance) : true,
+      showStats: settings.showStats !== undefined ? Boolean(settings.showStats) : true,
+      allowReferrals: settings.allowReferrals !== undefined ? Boolean(settings.allowReferrals) : true,
+      dataSharing: settings.dataSharing !== undefined ? Boolean(settings.dataSharing) : false
+    };
+    
+    db.prepare('UPDATE users SET privacy_settings = ? WHERE telegram_id = ?')
+      .run(JSON.stringify(validSettings), req.user.id);
+    
+    res.json({ success: true, settings: validSettings });
+  } catch (error) {
+    console.error('Privacy settings update error:', error);
+    res.status(500).json({ error: 'Failed to update privacy settings' });
+  }
+});
+
 export default router;
