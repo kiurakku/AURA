@@ -37,18 +37,24 @@
   max-width: 48px;
   max-height: 48px;
   border-radius: 50%;
-  border: 2px solid;
-  border-image: linear-gradient(135deg, var(--accent-purple-start), var(--accent-cyan-start)) 1;
+  border: 2px solid transparent;
+  background: linear-gradient(var(--bg-card), var(--bg-card)) padding-box,
+              linear-gradient(135deg, var(--accent-purple-start), var(--accent-cyan-start)) border-box;
   object-fit: cover;
   object-position: center;
   box-shadow: var(--shadow-glow-purple);
   flex-shrink: 0;
   aspect-ratio: 1 / 1;
+  display: block;
 }
 
 .avatar-placeholder {
   width: 48px;
   height: 48px;
+  min-width: 48px;
+  min-height: 48px;
+  max-width: 48px;
+  max-height: 48px;
   border-radius: 50%;
   background: linear-gradient(135deg, var(--accent-purple-start), var(--accent-cyan-start));
   display: flex;
@@ -60,6 +66,7 @@
   border: 2px solid transparent;
   box-shadow: var(--shadow-glow-purple);
   flex-shrink: 0;
+  aspect-ratio: 1 / 1;
 }
 
 .user-details {
