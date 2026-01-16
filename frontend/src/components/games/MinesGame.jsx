@@ -19,14 +19,20 @@ function MinesGame({ initData, onBack, onBalanceUpdate, botMode = false }) {
     
     setLoading(true);
     try {
-      const endpoint = botMode ? '/games/mines/bot' : '/games/mines';
+      if (!initData && !botMode) {
+        alert('Помилка авторизації');
+        setLoading(false);
+        return;
+      }
+      
+      const endpoint = botMode ? '/api/games/mines/bot' : '/api/games/mines';
       const response = await api.post(endpoint, {
         bet_amount: botMode ? 0 : betAmount,
         mine_count: mineCount,
         grid_size: gridSize,
         action: 'start'
       }, {
-        headers: { 'x-telegram-init-data': initData }
+        headers: botMode ? {} : { 'x-telegram-init-data': initData }
       });
 
       const data = response.data;
@@ -108,7 +114,7 @@ function MinesGame({ initData, onBack, onBalanceUpdate, botMode = false }) {
     
     setLoading(true);
     try {
-      const response = await api.post('/games/mines', {
+      const response = await api.post('/api/games/mines', {
         game_id: gameId,
         action: 'cashout'
       }, {

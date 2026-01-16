@@ -21,7 +21,8 @@ function CrashGame({ initData, onBack, onBalanceUpdate, botMode = false }) {
 
   const fetchHistory = async () => {
     try {
-      const response = await api.get('/games/history?limit=20', {
+      if (!initData) return;
+      const response = await api.get('/api/games/history?limit=20', {
         headers: { 'x-telegram-init-data': initData }
       });
       const crashGames = response.data.games
@@ -125,7 +126,7 @@ function CrashGame({ initData, onBack, onBalanceUpdate, botMode = false }) {
     setCrashed(true);
     
     try {
-      const response = await api.post('/games/crash', {
+      const response = await api.post('/api/games/crash', {
         game_id: gameId,
         action: 'cashout',
         cashout_multiplier: cashoutMult

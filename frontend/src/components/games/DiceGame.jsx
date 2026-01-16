@@ -19,13 +19,19 @@ function DiceGame({ initData, onBack, onBalanceUpdate, botMode = false }) {
     // Animate dice roll
     setTimeout(async () => {
       try {
-        const endpoint = botMode ? '/games/dice/bot' : '/games/dice';
+        if (!initData && !botMode) {
+          alert('Помилка авторизації');
+          setIsRolling(false);
+          return;
+        }
+        
+        const endpoint = botMode ? '/api/games/dice/bot' : '/api/games/dice';
         const response = await api.post(endpoint, {
           bet_amount: botMode ? 0 : betAmount,
           prediction,
           target
         }, {
-          headers: { 'x-telegram-init-data': initData }
+          headers: botMode ? {} : { 'x-telegram-init-data': initData }
         });
 
         const data = response.data;
