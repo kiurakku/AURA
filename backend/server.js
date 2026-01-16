@@ -56,6 +56,11 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
+// Serve frontend for all other routes (SPA) - must be last
+app.get('*', (req, res) => {
+  res.sendFile(join(__dirname, '../public/index.html'));
+});
+
 // WebSocket authentication middleware
 io.use((socket, next) => {
   const initData = socket.handshake.auth?.initData || socket.handshake.query?.initData;

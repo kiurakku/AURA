@@ -37,7 +37,8 @@ fly secrets set TELEGRAM_BOT_TOKEN="ваш_бот_токен"
 # Встановіть URL вашого WebApp (буде доступний після деплою)
 fly secrets set TELEGRAM_WEBAPP_URL="https://auraslots.fly.dev"
 
-# Встановіть адмін ID (замініть на ваш Telegram ID)
+# Встановіть адмін ID (Telegram ID користувача @BronhoFather)
+# Спочатку дізнайтеся ID через @userinfobot
 fly secrets set ADMIN_IDS="ваш_telegram_id"
 
 # Перевірте встановлені secrets
@@ -79,6 +80,18 @@ fly logs
 2. Відкрийте додаток в Telegram
 3. Перевірте адмін панель (якщо ваш ID в ADMIN_IDS)
 
+## URL для Telegram Mini App
+
+```
+https://auraslots.fly.dev
+```
+
+## Адмін панель
+
+Доступ до адмін панелі: `https://auraslots.fly.dev/api/admin/dashboard`
+
+Ваш Telegram ID (@BronhoFather) має бути в змінній `ADMIN_IDS`.
+
 ## Корисні команди
 
 ```bash
@@ -98,18 +111,6 @@ fly ssh console
 fly scale count 1
 fly scale vm shared-cpu-1x --memory 512
 ```
-
-## URL для Telegram Mini App
-
-```
-https://auraslots.fly.dev
-```
-
-## Адмін панель
-
-Доступ до адмін панелі: `/api/admin/dashboard`
-
-Ваш Telegram ID має бути в змінній `ADMIN_IDS`.
 
 ## Troubleshooting
 
