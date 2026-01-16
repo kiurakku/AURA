@@ -53,12 +53,6 @@ function Wallet({ user, initData, onBalanceUpdate }) {
     { id: 'BTC', name: 'BTC', icon: '/materials/icons/btc.png', emoji: '₿', network: 'Bitcoin', type: 'crypto' }
   ];
 
-  // Debug: Log icon paths
-  useEffect(() => {
-    console.log('Currency icons:', currencies.map(c => ({ name: c.name, icon: c.icon })));
-    console.log('Bonus coin icons:', bonusCoins.map(c => ({ name: c.name, icon: c.icon })));
-  }, []);
-
   const bonusCoins = [
     { 
       id: 'CHANCE', 
