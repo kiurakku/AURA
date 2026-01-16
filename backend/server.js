@@ -58,9 +58,22 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-// Serve frontend for all other routes (SPA) - must be last
-app.get('*', (req, res) => {
-  res.sendFile(join(__dirname, '../public/index.html'));
+// Serve frontend for all other routes (SPA) - must be last, after all API routes
+app.get('*', (req, res, next) => {
+  // Skip API routes
+  if (req.path.startsWith('/api')) {
+    return next();
+  }
+  // Skip health check
+  if (req.path === '/health') {
+    return next();
+  }
+  // Serve index.html for all other routes
+  res.sendFile(join(__dirname, '../public/index.html'), (err) => {
+    if (err) {
+      res.status(404).json({ error: 'Not Found' });
+    }
+  });
 });
 
 // WebSocket authentication middleware
