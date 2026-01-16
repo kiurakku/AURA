@@ -76,9 +76,9 @@ function Profile({ user, initData }) {
       setGameHistory(games);
 
       const totalGames = games.length;
-      const totalWins = games.filter(g => g.win_amount > 0).length;
-      const totalWagered = userRank?.total_wagered || games.reduce((sum, g) => sum + (g.bet_amount || 0), 0);
-      const totalWon = games.reduce((sum, g) => sum + (g.win_amount || 0), 0);
+      const totalWins = games.filter(g => g && g.win_amount > 0).length;
+      const totalWagered = userRank?.total_wagered || games.reduce((sum, g) => sum + (g?.bet_amount || 0), 0);
+      const totalWon = games.reduce((sum, g) => sum + (g?.win_amount || 0), 0);
 
       setStats({
         totalGames,
