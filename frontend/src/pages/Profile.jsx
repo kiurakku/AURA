@@ -86,7 +86,13 @@ function Profile({ user, initData }) {
         totalWon
       });
     } catch (error) {
-      console.error('Failed to fetch game history:', error);
+      setGameHistory([]);
+      setStats({
+        totalGames: 0,
+        totalWins: 0,
+        totalWagered: 0,
+        totalWon: 0
+      });
     }
   };
 
