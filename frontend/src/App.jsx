@@ -17,13 +17,6 @@ function App() {
   const [initData, setInitData] = useState(null);
   const [currentLanguage, setCurrentLanguage] = useState(getLanguage());
 
-  useEffect(() => {
-    const handleNavigate = (e) => {
-      setActiveTab(e.detail);
-    };
-    window.addEventListener('navigate', handleNavigate);
-    return () => window.removeEventListener('navigate', handleNavigate);
-  }, []);
 
   useEffect(() => {
     // Set language from Telegram if available
@@ -112,11 +105,12 @@ function App() {
       />
       
       <main className="main-content">
-        {activeTab === 'home' && <Home user={user} />}
+        {activeTab === 'home' && <Home user={user} initData={initData} onBalanceUpdate={updateBalance} />}
         {activeTab === 'games' && <Games user={user} initData={initData} onBalanceUpdate={updateBalance} />}
         {activeTab === 'wallet' && <Wallet user={user} initData={initData} onBalanceUpdate={updateBalance} />}
         {activeTab === 'referral' && <Referral user={user} initData={initData} />}
         {activeTab === 'profile' && <Profile user={user} initData={initData} />}
+        {!activeTab && <Home user={user} initData={initData} onBalanceUpdate={updateBalance} />}
       </main>
 
       <nav className="bottom-nav">
@@ -125,7 +119,7 @@ function App() {
           onClick={() => setActiveTab('home')}
         >
           <span className="nav-icon">🏠</span>
-          <span className="nav-label">Головна</span>
+          <span className="nav-label">{t('nav.home')}</span>
         </button>
         <button 
           className={`nav-item ${activeTab === 'games' ? 'active' : ''}`}
