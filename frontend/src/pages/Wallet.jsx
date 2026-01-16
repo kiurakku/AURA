@@ -48,9 +48,39 @@ function Wallet({ user, initData, onBalanceUpdate }) {
   };
 
   const currencies = [
-    { id: 'USDT', name: 'USDT', icon: '/materials/icons/usdt.png', emoji: '💵', network: 'TRC-20' },
-    { id: 'TON', name: 'TON', icon: '/materials/icons/ton.png', emoji: '⚡', network: 'TON' },
-    { id: 'BTC', name: 'BTC', icon: '/materials/icons/btc.png', emoji: '₿', network: 'Bitcoin' }
+    { id: 'USDT', name: 'USDT', icon: '/materials/icons/usdt.png', emoji: '💵', network: 'TRC-20', type: 'crypto' },
+    { id: 'TON', name: 'TON', icon: '/materials/icons/ton.png', emoji: '⚡', network: 'TON', type: 'crypto' },
+    { id: 'BTC', name: 'BTC', icon: '/materials/icons/btc.png', emoji: '₿', network: 'Bitcoin', type: 'crypto' }
+  ];
+
+  const bonusCoins = [
+    { 
+      id: 'CHANCE', 
+      name: 'Chance', 
+      icon: '/materials/icons/chance.png', 
+      emoji: '🎲', 
+      description: 'Дає більший шанс на виграш',
+      type: 'bonus',
+      effect: 'Збільшує шанс виграшу'
+    },
+    { 
+      id: 'OMEGA', 
+      name: 'Omega', 
+      icon: '/materials/icons/Omega.png', 
+      emoji: 'Ω', 
+      description: 'Примножує бонус',
+      type: 'bonus',
+      effect: 'Множник бонусів'
+    },
+    { 
+      id: 'UNPL', 
+      name: 'UNPL', 
+      icon: '/materials/icons/unpl.png', 
+      emoji: '🪙', 
+      description: 'Внутрішня валюта казино та проектів ARS7',
+      type: 'bonus',
+      effect: 'Внутрішня валюта'
+    }
   ];
 
   return (
@@ -95,7 +125,7 @@ function Wallet({ user, initData, onBalanceUpdate }) {
 
       {/* Currency Selection */}
       <div className="currency-selector glass-card">
-        <h3 className="selector-title">Вибір валюти</h3>
+        <h3 className="selector-title">Криптовалюти</h3>
         <div className="currency-grid">
           {currencies.map((currency) => (
             <button
@@ -108,16 +138,52 @@ function Wallet({ user, initData, onBalanceUpdate }) {
                   src={currency.icon} 
                   alt={currency.name}
                   onError={(e) => {
-                    e.target.style.display = 'none';
-                    e.target.nextSibling.style.display = 'inline';
+                    if (e.target.nextSibling) {
+                      e.target.style.display = 'none';
+                      e.target.nextSibling.style.display = 'inline';
+                    }
                   }}
-                  style={{ width: '32px', height: '32px' }}
+                  style={{ width: '32px', height: '32px', objectFit: 'contain' }}
                 />
                 <span style={{ display: 'none', fontSize: '32px' }}>{currency.emoji}</span>
               </span>
               <span className="currency-name">{currency.name}</span>
               <span className="currency-network">{currency.network}</span>
             </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Bonus Coins Section */}
+      <div className="bonus-coins-section glass-card">
+        <h3 className="selector-title">🎁 Бонусні монети</h3>
+        <p className="bonus-coins-description">Системні валюти для покращення ігрового досвіду</p>
+        <div className="bonus-coins-grid">
+          {bonusCoins.map((coin) => (
+            <div key={coin.id} className="bonus-coin-card">
+              <div className="bonus-coin-icon">
+                <img 
+                  src={coin.icon} 
+                  alt={coin.name}
+                  onError={(e) => {
+                    if (e.target.nextSibling) {
+                      e.target.style.display = 'none';
+                      e.target.nextSibling.style.display = 'inline';
+                    }
+                  }}
+                  style={{ width: '48px', height: '48px', objectFit: 'contain' }}
+                />
+                <span style={{ display: 'none', fontSize: '48px' }}>{coin.emoji}</span>
+              </div>
+              <div className="bonus-coin-info">
+                <h4 className="bonus-coin-name">{coin.name}</h4>
+                <p className="bonus-coin-description">{coin.description}</p>
+                <div className="bonus-coin-effect">
+                  <span className="effect-label">Ефект:</span>
+                  <span className="effect-value">{coin.effect}</span>
+                </div>
+              </div>
+            </div>
           ))}
         </div>
       </div>
