@@ -97,6 +97,10 @@ body {
   box-shadow: var(--shadow-soft);
 }
 
+.glass-card.game-card {
+  border-radius: 50% !important;
+}
+
 /* Neon glow effect */
 .neon-glow {
   box-shadow: 0 0 10px var(--accent-purple),
