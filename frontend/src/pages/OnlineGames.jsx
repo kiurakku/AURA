@@ -87,7 +87,32 @@ function OnlineGames({ user, initData, onBalanceUpdate }) {
 
       socket.on('game-action-updated', (data) => {
         // Handle real-time game actions (cashout, reveal, etc.)
-        console.log('Game action:', data);
+        if (myRoom && myRoom.id) {
+          setMyRoom(prev => ({
+            ...prev,
+            game_data: {
+              ...prev.game_data,
+              player_actions: {
+                ...prev.game_data?.player_actions,
+                [data.telegram_id]: {
+                  action: data.action,
+                  data: data.data,
+                  timestamp: data.timestamp
+                }
+              }
+            }
+          }));
+        }
+      });
+
+      socket.on('room-state', (data) => {
+        // Update room state when joining
+        setMyRoom(data.room);
+      });
+
+      socket.on('error', (error) => {
+        console.error('WebSocket error:', error);
+        alert(error.message || t('onlineGames.connectionError'));
       });
 
       // Initial fetch
@@ -102,9 +127,11 @@ function OnlineGames({ user, initData, onBalanceUpdate }) {
         socket.off('game-finished');
         socket.off('player-ready-updated');
         socket.off('game-action-updated');
+        socket.off('room-state');
+        socket.off('error');
       };
     }
-  }, [initData, myRoom]);
+  }, [initData]);
 
   const fetchActiveRooms = async () => {
     if (!initData) return;
