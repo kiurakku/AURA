@@ -315,3 +315,101 @@
   font-size: var(--font-body);
   color: var(--text-secondary);
 }
+
+/* Bonus Coins Section */
+.bonus-coins-section {
+  padding: 24px;
+  margin-bottom: 24px;
+}
+
+.bonus-coins-description {
+  font-size: var(--font-small);
+  color: var(--text-secondary);
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.bonus-coins-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+.bonus-coin-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 20px;
+  background: var(--bg-primary);
+  border: 2px solid var(--border-color);
+  border-radius: 16px;
+  transition: all 0.3s ease;
+  text-align: center;
+}
+
+.bonus-coin-card:hover {
+  border-color: var(--accent-purple-start);
+  background: rgba(138, 43, 226, 0.1);
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-glow-purple);
+}
+
+.bonus-coin-icon {
+  width: 64px;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 8px;
+}
+
+.bonus-coin-icon img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.bonus-coin-info {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+.bonus-coin-name {
+  font-size: var(--font-h2);
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.bonus-coin-description {
+  font-size: var(--font-small);
+  color: var(--text-secondary);
+  margin: 0;
+  line-height: 1.4;
+}
+
+.bonus-coin-effect {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px 12px;
+  background: rgba(0, 255, 255, 0.1);
+  border-radius: 8px;
+  margin-top: 8px;
+}
+
+.effect-label {
+  font-size: 11px;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.effect-value {
+  font-size: var(--font-small);
+  font-weight: 600;
+  color: var(--accent-cyan-start);
+}
