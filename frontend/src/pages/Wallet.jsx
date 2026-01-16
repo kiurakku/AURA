@@ -147,7 +147,7 @@ function Wallet({ user, initData, onBalanceUpdate }) {
                     console.error('Failed to load icon:', currency.icon);
                     if (e.target.nextSibling) {
                       e.target.style.display = 'none';
-                      e.target.nextSibling.style.display = 'inline';
+                      e.target.nextSibling.style.display = 'inline-block';
                     }
                   }}
                   onLoad={(e) => {
@@ -156,14 +156,8 @@ function Wallet({ user, initData, onBalanceUpdate }) {
                       e.target.nextSibling.style.display = 'none';
                     }
                   }}
-                  style={{ 
-                    width: '40px', 
-                    height: '40px', 
-                    objectFit: 'contain',
-                    display: 'block'
-                  }}
                 />
-                <span style={{ display: 'none', fontSize: '32px' }}>{currency.emoji}</span>
+                <span className="currency-icon-fallback" style={{ display: 'none', fontSize: '32px' }}>{currency.emoji}</span>
               </span>
               <span className="currency-name">{currency.name}</span>
               <span className="currency-network">{currency.network}</span>
@@ -187,7 +181,7 @@ function Wallet({ user, initData, onBalanceUpdate }) {
                     console.error('Failed to load bonus coin icon:', coin.icon);
                     if (e.target.nextSibling) {
                       e.target.style.display = 'none';
-                      e.target.nextSibling.style.display = 'inline';
+                      e.target.nextSibling.style.display = 'inline-block';
                     }
                   }}
                   onLoad={(e) => {
@@ -196,14 +190,8 @@ function Wallet({ user, initData, onBalanceUpdate }) {
                       e.target.nextSibling.style.display = 'none';
                     }
                   }}
-                  style={{ 
-                    width: '64px', 
-                    height: '64px', 
-                    objectFit: 'contain',
-                    display: 'block'
-                  }}
                 />
-                <span style={{ display: 'none', fontSize: '48px' }}>{coin.emoji}</span>
+                <span className="bonus-coin-icon-fallback" style={{ display: 'none', fontSize: '48px' }}>{coin.emoji}</span>
               </div>
               <div className="bonus-coin-info">
                 <h4 className="bonus-coin-name">{coin.name}</h4>
