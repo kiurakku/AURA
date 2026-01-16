@@ -55,6 +55,7 @@ function Profile({ user, initData }) {
   };
 
   const fetchCashbackInfo = async () => {
+    if (!initData) return;
     try {
       const response = await api.get('/cashback', {
         headers: { 'x-telegram-init-data': initData }

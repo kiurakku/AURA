@@ -7,8 +7,10 @@ function Referral({ user, initData }) {
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
-    fetchReferralInfo();
-  }, []);
+    if (initData) {
+      fetchReferralInfo();
+    }
+  }, [initData]);
 
   const fetchReferralInfo = async () => {
     if (!initData) return;

@@ -4,6 +4,7 @@ import CrashGame from '../components/games/CrashGame';
 import DiceGame from '../components/games/DiceGame';
 import MinesGame from '../components/games/MinesGame';
 import OnlineGames from './OnlineGames';
+import { t } from '../utils/i18n';
 
 function Games({ user, initData, onBalanceUpdate }) {
   const [activeGame, setActiveGame] = useState(null);
@@ -13,8 +14,15 @@ function Games({ user, initData, onBalanceUpdate }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [showFilters, setShowFilters] = useState(false);
   const [favorites, setFavorites] = useState(() => {
-    const saved = localStorage.getItem('gameFavorites');
-    return saved ? JSON.parse(saved) : [];
+    try {
+      if (typeof window !== 'undefined') {
+        const saved = localStorage.getItem('gameFavorites');
+        return saved ? JSON.parse(saved) : [];
+      }
+    } catch (error) {
+      // Ignore localStorage errors
+    }
+    return [];
   });
 
   const categories = [
