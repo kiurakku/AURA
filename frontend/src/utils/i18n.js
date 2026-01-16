@@ -52,7 +52,11 @@ const translations = {
       gameInProgress: 'Гра в розробці. Скоро буде доступна!',
       popularity: 'Популярність',
       bet: 'Ставка',
-      multiplayer: 'Мультиплеєр'
+      multiplayer: 'Мультиплеєр',
+      searchPlaceholder: 'Пошук ігор...',
+      gameType: 'Тип гри',
+      solo: 'Соло',
+      allTypes: 'Усі типи'
     },
     // Wallet
     wallet: {
