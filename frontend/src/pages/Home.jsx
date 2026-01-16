@@ -21,13 +21,16 @@ function Home({ user }) {
   const fetchRecentWins = async () => {
     try {
       const response = await api.get('/games/history?limit=10');
-      const wins = response.data.games
-        .filter(game => game.win_amount > 0)
+      const games = response.data?.games || [];
+      const wins = games
+        .filter(game => game && game.win_amount > 0)
         .slice(0, 10);
       setRecentWins(wins);
       setLiveWins(wins.slice(0, 5));
     } catch (error) {
       console.error('Failed to fetch wins:', error);
+      setRecentWins([]);
+      setLiveWins([]);
     }
   };
 

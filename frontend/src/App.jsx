@@ -106,11 +106,10 @@ function App() {
       
       <main className="main-content">
         {activeTab === 'home' && <Home user={user} initData={initData} onBalanceUpdate={updateBalance} />}
-        {activeTab === 'games' && <Games user={user} initData={initData} onBalanceUpdate={updateBalance} />}
-        {activeTab === 'wallet' && <Wallet user={user} initData={initData} onBalanceUpdate={updateBalance} />}
-        {activeTab === 'referral' && <Referral user={user} initData={initData} />}
-        {activeTab === 'profile' && <Profile user={user} initData={initData} />}
-        {!activeTab && <Home user={user} initData={initData} onBalanceUpdate={updateBalance} />}
+        {activeTab === 'games' && initData && <Games user={user} initData={initData} onBalanceUpdate={updateBalance} />}
+        {activeTab === 'wallet' && initData && <Wallet user={user} initData={initData} onBalanceUpdate={updateBalance} />}
+        {activeTab === 'referral' && initData && <Referral user={user} initData={initData} />}
+        {activeTab === 'profile' && initData && <Profile user={user} initData={initData} />}
       </main>
 
       <nav className="bottom-nav">
