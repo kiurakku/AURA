@@ -108,13 +108,10 @@ function Games({ user, initData, onBalanceUpdate }) {
               scrollDirection = 1;
             }
             
-            // Pause auto-scroll if user is interacting
-            if (container.scrollLeft === container.scrollLeft) {
-              container.scrollBy({
-                left: scrollDirection * 0.5,
-                behavior: 'auto'
-              });
-            }
+            container.scrollBy({
+              left: scrollDirection * 0.5,
+              behavior: 'auto'
+            });
           }, 30);
         }
       };
