@@ -280,6 +280,16 @@ function OnlineGames({ user, initData, onBalanceUpdate }) {
       maxPlayers: 8,
       theme: 'neon',
       canPlayWithBot: false
+    },
+    { 
+      id: 'blackjack', 
+      name: 'Блекджек (Дурак)', 
+      icon: '🃏', 
+      description: 'Гра в дурака з іншими гравцями',
+      minBet: 5,
+      maxPlayers: 4,
+      theme: 'cards',
+      canPlayWithBot: true
     }
   ];
 

@@ -8,7 +8,7 @@ import PrivacySettings from '../components/PrivacySettings';
 import WalletManager from '../components/WalletManager';
 import LegalDocuments from '../components/LegalDocuments';
 
-function Profile({ user, initData }) {
+function Profile({ user, initData, onLanguageChange }) {
   const [gameHistory, setGameHistory] = useState([]);
   const [stats, setStats] = useState({
     totalGames: 0,
@@ -101,10 +101,23 @@ function Profile({ user, initData }) {
   };
 
   const toggleSetting = (key) => {
-    setSettings(prev => ({
-      ...prev,
-      [key]: !prev[key]
-    }));
+    const newSettings = {
+      ...settings,
+      [key]: !settings[key]
+    };
+    setSettings(newSettings);
+    saveSettings(newSettings);
+    applySettings(newSettings);
+  };
+
+  const updateSettingValue = (key, value) => {
+    const newSettings = {
+      ...settings,
+      [key]: value
+    };
+    setSettings(newSettings);
+    saveSettings(newSettings);
+    applySettings(newSettings);
   };
 
   const getPlayerStatus = () => {
@@ -252,6 +265,11 @@ function Profile({ user, initData }) {
           <LanguageSelector onLanguageChange={(lang) => {
             setLanguage(lang);
             updateSettingValue('language', lang);
+            if (onLanguageChange) {
+              onLanguageChange(lang);
+            }
+            // Force re-render by dispatching event
+            window.dispatchEvent(new Event('languagechange'));
           }} />
           
           <div className="settings-list">

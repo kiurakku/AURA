@@ -576,6 +576,7 @@ function Games({ user, initData, onBalanceUpdate }) {
               key={game.id} 
               className={`game-card glass-card ${game.featured ? 'featured' : ''} ${game.isPlayable ? 'playable' : 'coming-soon'} ${game.gameType === 'multiplayer' ? 'multiplayer' : ''}`}
               style={{ animationDelay: `${index * 0.05}s` }}
+              onClick={() => handlePlayGame(game)}
             >
               <div className="game-card-content">
                 <div className="game-card-header">

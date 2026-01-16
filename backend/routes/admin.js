@@ -203,7 +203,7 @@ router.post('/users/:userId/balance', isAdmin, async (req, res) => {
       user.id,
       parseFloat(amount),
       currency,
-      description || `Admin bonus: ${amount} ${currency} (${type})`,
+      description || `Поповнення балансу від Aura Team`,
       JSON.stringify({
         admin_id: req.admin.id,
         admin_username: req.admin.username,

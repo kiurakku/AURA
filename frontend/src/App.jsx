@@ -18,9 +18,26 @@ function App() {
   const [activeTab, setActiveTab] = useState('home');
   const [initData, setInitData] = useState(null);
   const [currentLanguage, setCurrentLanguage] = useState(getLanguage());
+  const [languageKey, setLanguageKey] = useState(0); // Force re-render on language change
 
 
   useEffect(() => {
+    // Listen for language changes
+    const handleLanguageChange = () => {
+      setCurrentLanguage(getLanguage());
+      setLanguageKey(prev => prev + 1);
+    };
+    
+    // Listen for navigation events from Home page
+    const handleNavigate = (event) => {
+      if (event.detail === 'games') {
+        setActiveTab('games');
+      }
+    };
+    
+    window.addEventListener('languagechange', handleLanguageChange);
+    window.addEventListener('navigate', handleNavigate);
+    
     // Apply settings on mount
     applySettings();
     
@@ -70,6 +87,11 @@ function App() {
       // Development mode - use mock data
       setLoading(false);
     }
+    
+    return () => {
+      window.removeEventListener('languagechange', handleLanguageChange);
+      window.removeEventListener('navigate', handleNavigate);
+    };
   }, []);
 
   const authenticateUser = async (data) => {
@@ -151,11 +173,11 @@ function App() {
         
         <main className="main-content">
           <ErrorBoundary>
-            {activeTab === 'home' && <Home user={user} initData={initData} onBalanceUpdate={updateBalance} />}
-            {activeTab === 'games' && <Games user={user} initData={initData} onBalanceUpdate={updateBalance} />}
-            {activeTab === 'wallet' && <Wallet user={user} initData={initData} onBalanceUpdate={updateBalance} />}
-            {activeTab === 'referral' && <Referral user={user} initData={initData} />}
-            {activeTab === 'profile' && <Profile user={user} initData={initData} />}
+            {activeTab === 'home' && <Home key={languageKey} user={user} initData={initData} onBalanceUpdate={updateBalance} />}
+            {activeTab === 'games' && <Games key={languageKey} user={user} initData={initData} onBalanceUpdate={updateBalance} />}
+            {activeTab === 'wallet' && <Wallet key={languageKey} user={user} initData={initData} onBalanceUpdate={updateBalance} />}
+            {activeTab === 'referral' && <Referral key={languageKey} user={user} initData={initData} />}
+            {activeTab === 'profile' && <Profile key={languageKey} user={user} initData={initData} onLanguageChange={(lang) => { setCurrentLanguage(lang); setLanguageKey(prev => prev + 1); }} />}
           </ErrorBoundary>
         </main>
 

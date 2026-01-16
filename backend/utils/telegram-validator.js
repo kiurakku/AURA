@@ -58,13 +58,18 @@ export function parseUserData(initData) {
     }
 
     const user = JSON.parse(decodeURIComponent(userStr));
+    
+    // Extract start_param for referral links
+    const startParam = params.get('start_param') || params.get('startapp') || null;
+    
     return {
       id: user.id,
       username: user.username || null,
       first_name: user.first_name || null,
       last_name: user.last_name || null,
       photo_url: user.photo_url || null,
-      language_code: user.language_code || null
+      language_code: user.language_code || null,
+      start_param: startParam
     };
   } catch (error) {
     console.error('Parse error:', error);

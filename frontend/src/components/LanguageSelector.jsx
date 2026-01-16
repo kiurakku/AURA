@@ -10,8 +10,8 @@ function LanguageSelector({ onLanguageChange }) {
     if (onLanguageChange) {
       onLanguageChange(langCode);
     }
-    // Reload page to apply translations
-    window.location.reload();
+    // Force re-render by updating a state that triggers re-render
+    // The parent component should handle the language change
   };
 
   return (

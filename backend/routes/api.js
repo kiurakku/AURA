@@ -107,7 +107,10 @@ router.post('/auth', async (req, res) => {
     if (!user) {
       // Create new user
       const referralCode = crypto.randomBytes(8).toString('hex');
-      const referredBy = new URLSearchParams(initData).get('start_param')?.replace('ref_', '') || null;
+      // Try to get referral from start_param or startapp parameter
+      const params = new URLSearchParams(initData);
+      const startParam = params.get('start_param') || params.get('startapp') || null;
+      const referredBy = startParam?.replace('ref_', '') || null;
       
       let referrerId = null;
       if (referredBy) {

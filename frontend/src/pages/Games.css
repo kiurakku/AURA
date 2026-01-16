@@ -368,6 +368,8 @@
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   animation: fadeIn 0.5s ease-out backwards;
   border-radius: 24px !important;
+  border: 1px solid var(--border-color);
+  background: var(--bg-card);
 }
 
 .game-card::before {
@@ -392,27 +394,21 @@
 }
 
 .game-card.featured {
-  border: 2px solid;
-  border-image: linear-gradient(135deg, var(--accent-purple-start), var(--accent-cyan-start)) 1;
+  position: relative;
+  padding: 2px;
+  background: linear-gradient(135deg, var(--accent-purple-start), var(--accent-cyan-start));
   border-radius: 24px;
 }
 
-.game-card.featured::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: 24px;
-  padding: 2px;
-  background: linear-gradient(135deg, var(--accent-purple-start), var(--accent-cyan-start));
-  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-  -webkit-mask-composite: xor;
-  mask-composite: exclude;
-  pointer-events: none;
-  z-index: -1;
+.game-card.featured .game-card-content {
+  background: var(--bg-card);
+  border-radius: 22px;
+  height: 100%;
 }
 
 .game-card.multiplayer {
   border-left: 3px solid var(--accent-cyan-start);
+  border-radius: 24px !important;
 }
 
 .game-card.playable {

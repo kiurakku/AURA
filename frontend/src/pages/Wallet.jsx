@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import './Wallet.css';
 import { api } from '../utils/api';
 import { t } from '../utils/i18n';
+import { convertCurrency, formatCurrency, getCurrencySymbol } from '../utils/currency-converter';
 
 function Wallet({ user, initData, onBalanceUpdate }) {
   const [transactions, setTransactions] = useState([]);
@@ -157,9 +158,17 @@ function Wallet({ user, initData, onBalanceUpdate }) {
         </div>
         <div className="balance-main">
           <span className="balance-value balance-text">
-            {(user?.balance || 0).toFixed(2)}
+            {formatCurrency(convertCurrency(user?.balance || 0, 'USDT', selectedCurrency), selectedCurrency)}
           </span>
-          <span className="balance-currency">{selectedCurrency}</span>
+          <span className="balance-currency">{selectedCurrency} {getCurrencySymbol(selectedCurrency)}</span>
+        </div>
+        {/* Currency Converter */}
+        <div className="currency-converter" style={{ marginTop: '12px', padding: '12px', background: 'rgba(138, 43, 226, 0.1)', borderRadius: '12px', fontSize: '12px' }}>
+          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', justifyContent: 'center' }}>
+            <span>USDT: {formatCurrency(user?.balance || 0, 'USDT')}</span>
+            <span>TON: {formatCurrency(convertCurrency(user?.balance || 0, 'USDT', 'TON'), 'TON')}</span>
+            <span>BTC: {formatCurrency(convertCurrency(user?.balance || 0, 'USDT', 'BTC'), 'BTC')}</span>
+          </div>
         </div>
         {user?.bonus_balance > 0 && (
           <div className="bonus-balance">
@@ -310,10 +319,21 @@ function Wallet({ user, initData, onBalanceUpdate }) {
             transactions.map((tx) => (
               <div key={tx.id} className="transaction-item slide-in">
                 <div className="transaction-icon">
-                  {tx.type === 'deposit' ? '⬇️' : tx.type === 'withdraw' ? '⬆️' : '🎁'}
+                  {tx.type === 'deposit' || tx.type === 'admin_bonus' ? '⬇️' : 
+                   tx.type === 'withdraw' ? '⬆️' : 
+                   tx.type === 'daily_bonus' ? '🎁' :
+                   tx.type === 'game_win' ? '🎉' : '🎮'}
                 </div>
                 <div className="transaction-info">
-                  <div className="transaction-type">{tx.type}</div>
+                  <div className="transaction-type">
+                    {tx.type === 'admin_bonus' ? 'Поповнення від Aura Team' :
+                     tx.type === 'deposit' ? 'Поповнення' :
+                     tx.type === 'withdraw' ? 'Виведення' :
+                     tx.type === 'daily_bonus' ? 'Щоденний бонус' :
+                     tx.type === 'game_win' ? 'Виграш' :
+                     tx.type === 'game_bet' ? 'Ставка' :
+                     tx.description || tx.type}
+                  </div>
                   <div className="transaction-date">
                     {new Date(tx.created_at).toLocaleDateString('uk-UA', { 
                       day: '2-digit', 
@@ -323,8 +343,8 @@ function Wallet({ user, initData, onBalanceUpdate }) {
                     })}
                   </div>
                 </div>
-                <div className={`transaction-amount ${tx.type === 'deposit' ? 'positive' : 'negative'}`}>
-                  {tx.type === 'deposit' ? '+' : '-'}{tx.amount} {tx.currency}
+                <div className={`transaction-amount ${tx.type === 'deposit' || tx.type === 'admin_bonus' || tx.type === 'daily_bonus' || tx.type === 'game_win' ? 'positive' : 'negative'}`}>
+                  {(tx.type === 'deposit' || tx.type === 'admin_bonus' || tx.type === 'daily_bonus' || tx.type === 'game_win') ? '+' : '-'}{tx.amount} {tx.currency}
                 </div>
                 <div className={`transaction-status status-${tx.status}`}>
                   {tx.status === 'completed' ? '✅' : tx.status === 'pending' ? '⏳' : '❌'}
