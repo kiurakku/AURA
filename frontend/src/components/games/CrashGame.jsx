@@ -47,14 +47,20 @@ function CrashGame({ initData, onBack, onBalanceUpdate, botMode = false }) {
     gameStartTime.current = Date.now();
 
     try {
+      if (!initData && !botMode) {
+        alert('Помилка авторизації');
+        setIsPlaying(false);
+        return;
+      }
+      
       // Start game on server (or bot mode)
-      const endpoint = botMode ? '/games/crash/bot' : '/games/crash';
+      const endpoint = botMode ? '/api/games/crash/bot' : '/api/games/crash';
       const response = await api.post(endpoint, {
         bet_amount: botMode ? 0 : betAmount,
         auto_cashout: autoCashout,
         action: 'start'
       }, {
-        headers: { 'x-telegram-init-data': initData }
+        headers: botMode ? {} : { 'x-telegram-init-data': initData }
       });
 
       const result = response.data;
