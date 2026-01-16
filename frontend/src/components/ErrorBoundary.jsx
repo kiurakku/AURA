@@ -11,10 +11,14 @@ class ErrorBoundary extends React.Component {
   }
 
   componentDidCatch(error, errorInfo) {
-    // Reset error state after a delay to allow recovery
-    setTimeout(() => {
+    // Error logged silently
+  }
+
+  componentDidUpdate(prevProps) {
+    // Reset error state when props change (e.g., tab navigation)
+    if (this.state.hasError && prevProps.children !== this.props.children) {
       this.setState({ hasError: false });
-    }, 1000);
+    }
   }
 
   render() {

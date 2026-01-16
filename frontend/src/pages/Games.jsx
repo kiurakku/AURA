@@ -453,7 +453,7 @@ function Games({ user, initData, onBalanceUpdate }) {
 
       {/* Games Grid */}
       <div className="games-grid">
-        {filteredAndSortedGames.map((game, index) => (
+        {(filteredAndSortedGames || []).map((game, index) => (
           <div 
             key={game.id} 
             className={`game-card glass-card ${game.featured ? 'featured' : ''} ${game.isPlayable ? 'playable' : 'coming-soon'} ${game.gameType === 'multiplayer' ? 'multiplayer' : ''}`}
@@ -513,7 +513,7 @@ function Games({ user, initData, onBalanceUpdate }) {
         ))}
       </div>
 
-      {filteredAndSortedGames.length === 0 && (
+      {(!filteredAndSortedGames || filteredAndSortedGames.length === 0) && (
         <div className="empty-games glass-card">
           <div className="empty-icon">🎮</div>
           <p className="empty-text">Немає ігор за цими фільтрами</p>
