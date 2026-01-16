@@ -18,6 +18,15 @@ let db = null;
 const rooms = new Map();
 const roomPlayers = new Map(); // roomId -> [player1, player2, ...]
 
+// Export functions to access rooms from WebSocket server
+export function getRooms() {
+  return rooms;
+}
+
+export function getRoomPlayers() {
+  return roomPlayers;
+}
+
 // Initialize database
 getDatabase().then(database => {
   db = database;
@@ -131,6 +140,20 @@ router.post('/rooms/create', validateTelegramAuth, async (req, res) => {
       ready: false
     }]);
 
+    // Emit WebSocket event for new room
+    if (io) {
+      io.emit('room-created', {
+        room: {
+          id: room.id,
+          game_type: room.game_type,
+          bet: room.bet,
+          players: 1,
+          max_players: room.max_players,
+          status: room.status
+        }
+      });
+    }
+
     res.json({ 
       success: true, 
       room: {
@@ -194,6 +217,24 @@ router.post('/rooms/:roomId/join', validateTelegramAuth, async (req, res) => {
 
     roomPlayers.set(roomId, players);
 
+    // Emit WebSocket event for player joined
+    if (io) {
+      io.to(roomId).emit('player-joined', {
+        room: {
+          id: room.id,
+          game_type: room.game_type,
+          bet: room.bet,
+          players: players.length,
+          max_players: room.max_players,
+          status: room.status
+        },
+        player: {
+          telegram_id: req.user.id,
+          username: user.first_name || 'Player'
+        }
+      });
+    }
+
     res.json({ 
       success: true, 
       room: {
@@ -234,6 +275,25 @@ router.post('/rooms/:roomId/leave', validateTelegramAuth, async (req, res) => {
     if (players.length === 0 && room.created_by === req.user.id) {
       rooms.delete(roomId);
       roomPlayers.delete(roomId);
+      
+      // Emit WebSocket event for room deleted
+      if (io) {
+        io.to(roomId).emit('room-deleted', { roomId });
+      }
+    } else {
+      // Emit WebSocket event for player left
+      if (io) {
+        io.to(roomId).emit('player-left', {
+          room: {
+            id: room.id,
+            players: players.length,
+            max_players: room.max_players
+          },
+          player: {
+            telegram_id: req.user.id
+          }
+        });
+      }
     }
 
     res.json({ success: true });
@@ -309,6 +369,17 @@ router.post('/rooms/:roomId/start', validateTelegramAuth, async (req, res) => {
     };
 
     rooms.set(roomId, room);
+
+    // Emit WebSocket event for game started
+    if (io) {
+      io.to(roomId).emit('game-started', {
+        game_data: room.game_data,
+        players: players.map(p => ({
+          telegram_id: p.telegram_id,
+          username: p.username
+        }))
+      });
+    }
 
     res.json({ 
       success: true, 
@@ -458,6 +529,18 @@ router.post('/rooms/:roomId/finish', validateTelegramAuth, async (req, res) => {
     room.status = 'finished';
     room.game_data.winners = winners;
     rooms.set(roomId, room);
+
+    // Emit WebSocket event for game finished
+    if (io) {
+      io.to(roomId).emit('game-finished', {
+        winners,
+        game_result: gameData.result,
+        room: {
+          id: room.id,
+          status: room.status
+        }
+      });
+    }
 
     // Clean up after 1 hour
     setTimeout(() => {

@@ -1,9 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import './OnlineGames.css';
 import { api } from '../utils/api';
+import { initSocket, getSocket, disconnectSocket } from '../utils/socket';
 import CrashGame from '../components/games/CrashGame';
 import DiceGame from '../components/games/DiceGame';
 import MinesGame from '../components/games/MinesGame';
+import { t } from '../utils/i18n';
 
 function OnlineGames({ user, initData, onBalanceUpdate }) {
   const [activeRooms, setActiveRooms] = useState([]);
@@ -11,14 +13,98 @@ function OnlineGames({ user, initData, onBalanceUpdate }) {
   const [searching, setSearching] = useState(false);
   const [gameMode, setGameMode] = useState(null); // 'free' or 'paid'
   const [selectedGame, setSelectedGame] = useState(null);
+  const socketRef = useRef(null);
 
   useEffect(() => {
     if (initData) {
+      // Initialize WebSocket connection
+      const socket = initSocket(initData);
+      socketRef.current = socket;
+
+      // Listen for room updates
+      socket.on('room-created', (data) => {
+        fetchActiveRooms();
+      });
+
+      socket.on('room-updated', (data) => {
+        if (myRoom && myRoom.id === data.room.id) {
+          setMyRoom(data.room);
+        }
+        fetchActiveRooms();
+      });
+
+      socket.on('player-joined', (data) => {
+        if (myRoom && myRoom.id === data.room.id) {
+          setMyRoom(data.room);
+        }
+        fetchActiveRooms();
+      });
+
+      socket.on('player-left', (data) => {
+        if (myRoom && myRoom.id === data.room.id) {
+          setMyRoom(data.room);
+        }
+        fetchActiveRooms();
+      });
+
+      socket.on('game-started', (data) => {
+        if (myRoom) {
+          setMyRoom(prev => ({
+            ...prev,
+            status: 'playing',
+            game_data: data.game_data
+          }));
+        }
+      });
+
+      socket.on('game-finished', (data) => {
+        if (myRoom) {
+          setMyRoom(prev => ({
+            ...prev,
+            status: 'finished',
+            game_data: {
+              ...prev.game_data,
+              winners: data.winners,
+              result: data.game_result
+            }
+          }));
+          onBalanceUpdate();
+        }
+      });
+
+      socket.on('player-ready-updated', (data) => {
+        if (myRoom && myRoom.id) {
+          setMyRoom(prev => ({
+            ...prev,
+            players: prev.players.map(p => 
+              p.telegram_id === data.telegram_id 
+                ? { ...p, ready: data.ready }
+                : p
+            )
+          }));
+        }
+      });
+
+      socket.on('game-action-updated', (data) => {
+        // Handle real-time game actions (cashout, reveal, etc.)
+        console.log('Game action:', data);
+      });
+
+      // Initial fetch
       fetchActiveRooms();
-      const interval = setInterval(fetchActiveRooms, 5000);
-      return () => clearInterval(interval);
+
+      return () => {
+        socket.off('room-created');
+        socket.off('room-updated');
+        socket.off('player-joined');
+        socket.off('player-left');
+        socket.off('game-started');
+        socket.off('game-finished');
+        socket.off('player-ready-updated');
+        socket.off('game-action-updated');
+      };
     }
-  }, [initData]);
+  }, [initData, myRoom]);
 
   const fetchActiveRooms = async () => {
     if (!initData) return;
@@ -44,10 +130,17 @@ function OnlineGames({ user, initData, onBalanceUpdate }) {
           headers: { 'x-telegram-init-data': initData }
         });
         setMyRoom(roomResponse.data.room);
+        
+        // Join WebSocket room
+        const socket = getSocket();
+        if (socket) {
+          socket.emit('join-room', roomId);
+        }
+        
         onBalanceUpdate();
       }
     } catch (error) {
-      alert(error.response?.data?.error || 'Помилка підключення');
+      alert(error.response?.data?.error || t('onlineGames.joinError'));
     } finally {
       setSearching(false);
     }
@@ -69,10 +162,17 @@ function OnlineGames({ user, initData, onBalanceUpdate }) {
           headers: { 'x-telegram-init-data': initData }
         });
         setMyRoom(roomResponse.data.room);
+        
+        // Join WebSocket room
+        const socket = getSocket();
+        if (socket) {
+          socket.emit('join-room', response.data.room.id);
+        }
+        
         onBalanceUpdate();
       }
     } catch (error) {
-      alert(error.response?.data?.error || 'Помилка створення кімнати');
+      alert(error.response?.data?.error || t('onlineGames.createError'));
     } finally {
       setSearching(false);
     }
