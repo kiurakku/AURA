@@ -211,35 +211,39 @@ function Wallet({ user, initData, onBalanceUpdate }) {
       <div className="currency-selector glass-card">
         <h3 className="selector-title">{t('wallet.cryptocurrencies')}</h3>
         <div className="currency-grid">
-          {currencies.map((currency) => (
-            <button
-              key={currency.id}
-              className={`currency-option ${selectedCurrency === currency.id ? 'active' : ''}`}
-              onClick={() => setSelectedCurrency(currency.id)}
-            >
-              <span className="currency-icon">
-                <img 
-                  src={currency.icon} 
-                  alt={currency.name}
-                  onError={(e) => {
-                    if (e.target.nextSibling) {
-                      e.target.style.display = 'none';
-                      e.target.nextSibling.style.display = 'inline-block';
-                    }
-                  }}
-                  onLoad={(e) => {
-                    e.target.style.display = 'block';
-                    if (e.target.nextSibling) {
-                      e.target.nextSibling.style.display = 'none';
-                    }
-                  }}
-                />
-                <span className="currency-icon-fallback" style={{ display: 'none', fontSize: '32px' }}>{currency.emoji}</span>
-              </span>
-              <span className="currency-name">{currency.name}</span>
-              <span className="currency-network">{currency.network}</span>
-            </button>
-          ))}
+          {currencies.map((currency) => {
+            const convertedBalance = convertCurrency(user?.balance || 0, 'USDT', currency.id);
+            return (
+              <button
+                key={currency.id}
+                className={`currency-option ${selectedCurrency === currency.id ? 'active' : ''}`}
+                onClick={() => setSelectedCurrency(currency.id)}
+              >
+                <span className="currency-icon">
+                  <img 
+                    src={currency.icon} 
+                    alt={currency.name}
+                    onError={(e) => {
+                      if (e.target.nextSibling) {
+                        e.target.style.display = 'none';
+                        e.target.nextSibling.style.display = 'inline-block';
+                      }
+                    }}
+                    onLoad={(e) => {
+                      e.target.style.display = 'block';
+                      if (e.target.nextSibling) {
+                        e.target.nextSibling.style.display = 'none';
+                      }
+                    }}
+                  />
+                  <span className="currency-icon-fallback" style={{ display: 'none', fontSize: '32px' }}>{currency.emoji}</span>
+                </span>
+                <span className="currency-name">{currency.name}</span>
+                <span className="currency-balance">{formatCurrency(convertedBalance, currency.id)} {currency.id}</span>
+                <span className="currency-network">{currency.network}</span>
+              </button>
+            );
+          })}
         </div>
       </div>
 
