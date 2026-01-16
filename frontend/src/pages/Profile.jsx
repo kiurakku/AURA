@@ -50,7 +50,6 @@ function Profile({ user, initData }) {
         });
       }
     } catch (error) {
-      console.error('Failed to fetch user rank:', error);
       setUserRank(null);
     }
   };

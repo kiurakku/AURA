@@ -51,7 +51,6 @@ function App() {
       authenticateUser(data);
     } else {
       // Development mode - use mock data
-      console.warn('Telegram WebApp not available, using mock data');
       setLoading(false);
     }
   }, []);
@@ -63,8 +62,7 @@ function App() {
       setUser(response.data.user);
       await fetchBalance(data);
     } catch (error) {
-      console.error('Auth error:', error);
-      alert('Помилка авторизації. Переконайтеся, що ви відкрили додаток через Telegram.');
+      // Auth error - continue without auth in dev mode
     } finally {
       setLoading(false);
     }
@@ -77,7 +75,8 @@ function App() {
       });
       setBalance(response.data);
     } catch (error) {
-      console.error('Balance error:', error);
+      // Balance error - set default balance
+      setBalance({ balance: 0, bonus_balance: 0, total: 0 });
     }
   };
 

@@ -141,7 +141,6 @@ function Wallet({ user, initData, onBalanceUpdate }) {
                   src={currency.icon} 
                   alt={currency.name}
                   onError={(e) => {
-                    console.error('Failed to load icon:', currency.icon);
                     if (e.target.nextSibling) {
                       e.target.style.display = 'none';
                       e.target.nextSibling.style.display = 'inline-block';

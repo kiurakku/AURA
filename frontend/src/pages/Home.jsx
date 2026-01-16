@@ -28,7 +28,6 @@ function Home({ user }) {
       setRecentWins(wins);
       setLiveWins(wins.slice(0, 5));
     } catch (error) {
-      console.error('Failed to fetch wins:', error);
       setRecentWins([]);
       setLiveWins([]);
     }

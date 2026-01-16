@@ -18,7 +18,6 @@ function Referral({ user, initData }) {
       });
       setReferralInfo(response.data);
     } catch (error) {
-      console.error('Failed to fetch referral info:', error);
       setReferralInfo(null);
     }
   };
