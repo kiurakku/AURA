@@ -30,12 +30,12 @@ function Home({ user }) {
   };
 
   const posters = [
-    { id: 1, title: 'Вітальний бонус 100%', subtitle: 'До 500 USDT', image: '/materials/Вітальний бонус 100%.jpg' },
-    { id: 2, title: 'Турнір тижня', subtitle: 'Призовий фонд 10,000 USDT', image: '/materials/Турнір тижня.jpeg' },
-    { id: 3, title: 'Джекпот', subtitle: 'Накопичено 50,000 USDT', image: '/materials/Джекпот.jpg' },
-    { id: 4, title: 'Нові ігри!', subtitle: 'Спробуй першим', image: '/materials/AURA.jpg' },
-    { id: 5, title: 'Бонус шансу', subtitle: 'Кожен день нові нагороди', image: '/materials/chance.png' },
-    { id: 6, title: 'Omega турнір', subtitle: 'Ексклюзивні призи', image: '/materials/Omega.png' }
+    { id: 1, title: 'Вітальний бонус 100%', subtitle: 'До 500 USDT', image: encodeURI('/materials/Вітальний бонус 100%.jpg') },
+    { id: 2, title: 'Турнір тижня', subtitle: 'Призовий фонд 10,000 USDT', image: encodeURI('/materials/Турнір тижня.jpeg') },
+    { id: 3, title: 'Джекпот', subtitle: 'Накопичено 50,000 USDT', image: encodeURI('/materials/Джекпот.jpg') },
+    { id: 4, title: 'Нові ігри!', subtitle: 'Спробуй першим', image: encodeURI('/materials/AURA.jpg') },
+    { id: 5, title: 'Бонус шансу', subtitle: 'Кожен день нові нагороди', image: encodeURI('/materials/chance.png') },
+    { id: 6, title: 'Omega турнір', subtitle: 'Ексклюзивні призи', image: encodeURI('/materials/Omega.png') }
   ];
 
   useEffect(() => {
