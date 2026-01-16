@@ -1,0 +1,75 @@
+.legal-documents {
+  margin-top: 32px;
+}
+
+.legal-title {
+  font-size: var(--font-h2);
+  font-weight: 700;
+  margin-bottom: 20px;
+  color: var(--text-primary);
+}
+
+.documents-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.document-item {
+  padding: 20px;
+}
+
+.document-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+}
+
+.document-title {
+  font-size: var(--font-body);
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.document-toggle {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(138, 43, 226, 0.1);
+  color: var(--accent-purple-start);
+  cursor: pointer;
+  font-size: 16px;
+  transition: all 0.3s ease;
+}
+
+.document-toggle:hover {
+  background: rgba(138, 43, 226, 0.2);
+  transform: scale(1.1);
+}
+
+.document-content {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border-color);
+}
+
+.document-content pre {
+  font-family: var(--font-family);
+  font-size: var(--font-small);
+  line-height: 1.6;
+  color: var(--text-secondary);
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  background: var(--bg-primary);
+  padding: 16px;
+  border-radius: 12px;
+  max-height: 400px;
+  overflow-y: auto;
+  margin-bottom: 16px;
+}
+
+.document-close {
+  width: 100%;
+}

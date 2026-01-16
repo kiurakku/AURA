@@ -1,0 +1,131 @@
+.wallet-manager {
+  padding: 24px;
+  margin-top: 24px;
+}
+
+.wallet-manager-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.wallet-manager-title {
+  font-size: var(--font-h2);
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.wallet-count {
+  font-size: var(--font-small);
+  color: var(--text-secondary);
+  padding: 4px 12px;
+  background: rgba(138, 43, 226, 0.1);
+  border-radius: 12px;
+}
+
+.wallets-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.wallet-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  transition: all 0.3s ease;
+}
+
+.wallet-item:hover {
+  border-color: var(--accent-purple-start);
+  background: rgba(138, 43, 226, 0.05);
+}
+
+.wallet-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+}
+
+.wallet-icon {
+  font-size: 32px;
+}
+
+.wallet-details {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.wallet-type {
+  font-size: var(--font-body);
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.wallet-address {
+  font-size: var(--font-small);
+  color: var(--text-secondary);
+  font-family: 'Courier New', monospace;
+}
+
+.wallet-remove-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(220, 20, 60, 0.2);
+  color: var(--error);
+  cursor: pointer;
+  font-size: 18px;
+  transition: all 0.3s ease;
+}
+
+.wallet-remove-btn:hover {
+  background: rgba(220, 20, 60, 0.3);
+  transform: scale(1.1);
+}
+
+.empty-wallets {
+  text-align: center;
+  padding: 40px 20px;
+}
+
+.empty-wallets .empty-icon {
+  font-size: 48px;
+  margin-bottom: 12px;
+  opacity: 0.5;
+}
+
+.empty-wallets p {
+  font-size: var(--font-body);
+  color: var(--text-secondary);
+}
+
+.add-wallet-btn {
+  width: 100%;
+  margin-top: 12px;
+}
+
+.add-wallet-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.add-wallet-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.add-wallet-actions .btn {
+  flex: 1;
+}

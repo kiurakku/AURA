@@ -1,0 +1,44 @@
+.language-selector {
+  margin-bottom: 24px;
+}
+
+.language-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.language-option {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 16px 12px;
+  background: var(--bg-card);
+  border: 2px solid var(--border-color);
+  border-radius: 16px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.language-option:hover {
+  border-color: var(--accent-purple-start);
+  background: rgba(138, 43, 226, 0.1);
+}
+
+.language-option.active {
+  border-color: var(--accent-cyan-start);
+  background: linear-gradient(135deg, rgba(0, 255, 255, 0.1), rgba(138, 43, 226, 0.1));
+  box-shadow: var(--shadow-glow-cyan);
+}
+
+.language-flag {
+  font-size: 32px;
+}
+
+.language-name {
+  font-size: var(--font-small);
+  font-weight: 600;
+  color: var(--text-primary);
+}

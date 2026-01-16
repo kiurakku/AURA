@@ -1,0 +1,168 @@
+.dice-game {
+  padding: 20px 0;
+}
+
+.dice-container {
+  padding: 32px 24px;
+  text-align: center;
+}
+
+.dice-display {
+  margin-bottom: 32px;
+  min-height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dice-rolling {
+  font-size: 80px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.dice-ready {
+  font-size: 80px;
+}
+
+.dice-result {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.dice-value {
+  font-size: 64px;
+  font-weight: 800;
+  font-family: 'Courier New', monospace;
+}
+
+.dice-result.won .dice-value {
+  color: var(--accent-cyan);
+  text-shadow: 0 0 20px rgba(6, 182, 212, 0.5);
+}
+
+.dice-result.lost .dice-value {
+  color: #ef4444;
+}
+
+.dice-status {
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.dice-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  margin-bottom: 24px;
+}
+
+.prediction-selector {
+  display: flex;
+  gap: 12px;
+}
+
+.prediction-btn {
+  flex: 1;
+  padding: 16px;
+  background: var(--bg-card);
+  border: 2px solid var(--border-color);
+  border-radius: 12px;
+  color: var(--text-primary);
+  font-size: 18px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.prediction-btn:hover:not(:disabled) {
+  border-color: var(--accent-purple);
+  background: rgba(139, 92, 246, 0.1);
+}
+
+.prediction-btn.active {
+  background: linear-gradient(135deg, var(--accent-purple), var(--accent-pink));
+  border-color: var(--accent-purple);
+  color: white;
+}
+
+.prediction-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.target-selector {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.target-selector label {
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.target-slider {
+  width: 100%;
+  height: 8px;
+  background: var(--bg-card);
+  border-radius: 4px;
+  outline: none;
+  -webkit-appearance: none;
+}
+
+.target-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  background: var(--accent-purple);
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.target-display {
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--accent-cyan);
+  font-family: 'Courier New', monospace;
+}
+
+.roll-btn {
+  width: 100%;
+  padding: 16px;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.quick-bets {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+.quick-bet-btn {
+  padding: 8px 16px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 14px;
+}
+
+.quick-bet-btn:hover:not(:disabled) {
+  background: rgba(139, 92, 246, 0.2);
+  border-color: var(--accent-purple);
+}
+
+.quick-bet-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

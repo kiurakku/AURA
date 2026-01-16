@@ -1,0 +1,244 @@
+.online-games-page {
+  padding: 20px 0;
+}
+
+.page-subtitle {
+  text-align: center;
+  color: var(--text-secondary);
+  margin-bottom: 24px;
+  font-size: var(--font-body);
+}
+
+.active-rooms-section {
+  margin-bottom: 32px;
+}
+
+.rooms-list {
+  padding: 20px;
+  margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.room-card {
+  padding: 20px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  transition: all 0.3s ease;
+}
+
+.room-card:hover {
+  border-color: var(--accent-purple-start);
+  background: rgba(138, 43, 226, 0.05);
+  transform: translateX(4px);
+}
+
+.room-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.room-header h3 {
+  font-size: var(--font-h2);
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.room-status-badge {
+  padding: 6px 12px;
+  border-radius: 12px;
+  font-size: var(--font-small);
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.room-status-badge.waiting {
+  background: rgba(255, 215, 0, 0.2);
+  color: var(--warning);
+  border: 1px solid var(--warning);
+}
+
+.room-status-badge.playing {
+  background: rgba(50, 205, 50, 0.2);
+  color: var(--success);
+  border: 1px solid var(--success);
+}
+
+.room-details {
+  display: flex;
+  gap: 24px;
+  margin-bottom: 16px;
+}
+
+.room-detail {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: var(--font-body);
+  color: var(--text-secondary);
+}
+
+.room-detail span:first-child {
+  font-size: 20px;
+}
+
+.join-btn {
+  width: 100%;
+}
+
+.online-games-section {
+  margin-top: 32px;
+}
+
+.online-games-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+  margin-top: 20px;
+}
+
+.online-game-card {
+  padding: 32px 24px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.online-game-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 0.3s;
+  z-index: 0;
+}
+
+.online-game-card.telegram::before {
+  background: linear-gradient(135deg, rgba(0, 136, 204, 0.1), rgba(138, 43, 226, 0.1));
+}
+
+.online-game-card.cyber::before {
+  background: linear-gradient(135deg, rgba(0, 255, 255, 0.1), rgba(0, 191, 255, 0.1));
+}
+
+.online-game-card.frost::before {
+  background: linear-gradient(135deg, rgba(173, 216, 230, 0.1), rgba(135, 206, 250, 0.1));
+}
+
+.online-game-card.neon::before {
+  background: linear-gradient(135deg, rgba(138, 43, 226, 0.1), rgba(191, 0, 255, 0.1));
+}
+
+.online-game-card:hover::before {
+  opacity: 1;
+}
+
+.online-game-card:hover {
+  transform: translateY(-8px);
+  box-shadow: var(--shadow-glow-purple);
+  border-color: var(--accent-purple-start);
+}
+
+.game-icon-large {
+  font-size: 64px;
+  margin-bottom: 16px;
+  position: relative;
+  z-index: 1;
+  filter: drop-shadow(0 0 15px rgba(138, 43, 226, 0.6));
+  animation: float 3s ease-in-out infinite;
+}
+
+.game-name {
+  font-size: var(--font-h2);
+  font-weight: 700;
+  margin-bottom: 8px;
+  color: var(--text-primary);
+  position: relative;
+  z-index: 1;
+}
+
+.game-description {
+  font-size: var(--font-small);
+  color: var(--text-secondary);
+  margin-bottom: 16px;
+  position: relative;
+  z-index: 1;
+}
+
+.game-info {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 20px;
+  position: relative;
+  z-index: 1;
+}
+
+.info-item {
+  display: flex;
+  justify-content: space-between;
+  font-size: var(--font-small);
+  color: var(--text-secondary);
+}
+
+.create-room-btn {
+  width: 100%;
+  position: relative;
+  z-index: 1;
+}
+
+.online-game-room {
+  padding: 20px 0;
+}
+
+.back-btn {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 16px;
+  cursor: pointer;
+  margin-bottom: 20px;
+  padding: 8px 0;
+  transition: color 0.3s ease;
+}
+
+.back-btn:hover {
+  color: var(--accent-purple);
+}
+
+.room-info {
+  padding: 32px 24px;
+  text-align: center;
+}
+
+.room-info h2 {
+  font-size: var(--font-h1);
+  font-weight: 800;
+  margin-bottom: 20px;
+  background: linear-gradient(135deg, var(--accent-purple-start), var(--accent-cyan-start));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.room-players,
+.room-bet,
+.room-status {
+  font-size: var(--font-body);
+  color: var(--text-secondary);
+  margin-bottom: 12px;
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}

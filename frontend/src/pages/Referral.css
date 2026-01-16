@@ -1,0 +1,175 @@
+.referral-page {
+  padding: 20px 0;
+}
+
+.referral-hero {
+  position: relative;
+  padding: 40px 24px;
+  text-align: center;
+  margin-bottom: 24px;
+  overflow: hidden;
+}
+
+.referral-hero::before {
+  content: '🎁';
+  position: absolute;
+  font-size: 120px;
+  opacity: 0.1;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  animation: float 4s ease-in-out infinite;
+}
+
+.referral-hero h2 {
+  font-size: var(--font-h1);
+  font-weight: 800;
+  margin-bottom: 12px;
+  position: relative;
+  z-index: 1;
+  background: linear-gradient(135deg, var(--accent-purple-start), var(--accent-cyan-start));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.referral-description {
+  font-size: var(--font-body);
+  color: var(--text-secondary);
+  position: relative;
+  z-index: 1;
+  line-height: 1.6;
+}
+
+.referral-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+.stat-card {
+  padding: 24px 16px;
+  text-align: center;
+  position: relative;
+}
+
+.stat-value {
+  font-size: 32px;
+  font-weight: 800;
+  background: linear-gradient(135deg, var(--accent-purple-start), var(--accent-cyan-start));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 8px;
+  font-family: var(--font-family);
+  animation: numberRoll 0.5s ease-out;
+}
+
+.stat-label {
+  font-size: var(--font-small);
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 600;
+}
+
+.referral-link-section {
+  margin-bottom: 32px;
+}
+
+.referral-link-section label {
+  display: block;
+  font-size: var(--font-small);
+  color: var(--text-secondary);
+  margin-bottom: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.referral-link-container {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.referral-link-input {
+  flex: 1;
+  padding: 14px 18px;
+  background: var(--bg-input);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  color: var(--text-primary);
+  font-size: var(--font-small);
+  font-family: 'Courier New', monospace;
+}
+
+.referral-link-input:focus {
+  outline: none;
+  border-color: var(--accent-cyan-start);
+  box-shadow: 0 0 15px rgba(0, 255, 255, 0.3);
+}
+
+.copy-btn {
+  padding: 14px 24px;
+  white-space: nowrap;
+}
+
+.referral-benefits {
+  padding: 32px 24px;
+}
+
+.referral-benefits h3 {
+  font-size: var(--font-h2);
+  font-weight: 700;
+  margin-bottom: 24px;
+  text-align: center;
+  color: var(--text-primary);
+}
+
+.benefits-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.benefits-list li {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 20px;
+  background: rgba(138, 43, 226, 0.05);
+  border: 1px solid var(--border-color);
+  border-left: 4px solid;
+  border-image: linear-gradient(135deg, var(--accent-purple-start), var(--accent-cyan-start)) 1;
+  border-radius: 12px;
+  font-size: var(--font-body);
+  color: var(--text-primary);
+  transition: all 0.3s ease;
+}
+
+.benefits-list li:hover {
+  background: rgba(138, 43, 226, 0.1);
+  transform: translateX(4px);
+  box-shadow: var(--shadow-glow-purple);
+}
+
+.benefits-list li::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent-purple-start), var(--accent-cyan-start));
+  box-shadow: 0 0 10px var(--accent-cyan-start);
+  flex-shrink: 0;
+}
+
+.invite-button {
+  width: 100%;
+  margin-top: 24px;
+  padding: 16px;
+  font-size: var(--font-body);
+  font-weight: 700;
+}
