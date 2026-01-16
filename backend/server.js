@@ -28,6 +28,7 @@ app.use('/materials', express.static(join(__dirname, '../src/materials')));
 // API Routes
 app.use('/api', apiRoutes);
 app.use('/api/games', gamesRoutes);
+app.use('/api/online-games', onlineGamesRoutes);
 
 // Health check
 app.get('/health', (req, res) => {

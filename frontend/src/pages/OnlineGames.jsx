@@ -13,59 +13,66 @@ function OnlineGames({ user, initData, onBalanceUpdate }) {
   const [selectedGame, setSelectedGame] = useState(null);
 
   useEffect(() => {
-    fetchActiveRooms();
-    const interval = setInterval(fetchActiveRooms, 5000);
-    return () => clearInterval(interval);
-  }, []);
+    if (initData) {
+      fetchActiveRooms();
+      const interval = setInterval(fetchActiveRooms, 5000);
+      return () => clearInterval(interval);
+    }
+  }, [initData]);
 
   const fetchActiveRooms = async () => {
+    if (!initData) return;
     try {
-      // TODO: Implement API endpoint
-      // const response = await api.get('/online-games/rooms', {
-      //   headers: { 'x-telegram-init-data': initData }
-      // });
-      // setActiveRooms(response.data.rooms || []);
-      
-      // Mock data
-      setActiveRooms([
-        { id: 1, game: 'Telegram Battle', players: 2, maxPlayers: 4, bet: 10, status: 'waiting' },
-        { id: 2, game: 'Cyber Crash', players: 8, maxPlayers: 10, bet: 25, status: 'playing' },
-        { id: 3, game: 'Frost Dice', players: 1, maxPlayers: 6, bet: 5, status: 'waiting' }
-      ]);
+      const response = await api.get('/online-games/rooms', {
+        headers: { 'x-telegram-init-data': initData }
+      });
+      setActiveRooms(response.data.rooms || []);
     } catch (error) {
-      console.error('Failed to fetch rooms:', error);
+      setActiveRooms([]);
     }
   };
 
   const joinRoom = async (roomId) => {
+    if (!initData) return;
     try {
       setSearching(true);
-      // TODO: Implement API endpoint
-      // const response = await api.post(`/online-games/join/${roomId}`, {}, {
-      //   headers: { 'x-telegram-init-data': initData }
-      // });
-      // setMyRoom(response.data.room);
-      alert('Підключення до кімнати...');
+      const response = await api.post(`/online-games/rooms/${roomId}/join`, {}, {
+        headers: { 'x-telegram-init-data': initData }
+      });
+      if (response.data.success) {
+        const roomResponse = await api.get(`/online-games/rooms/${roomId}`, {
+          headers: { 'x-telegram-init-data': initData }
+        });
+        setMyRoom(roomResponse.data.room);
+        onBalanceUpdate();
+      }
     } catch (error) {
-      console.error('Failed to join room:', error);
-      alert('Помилка підключення');
+      alert(error.response?.data?.error || 'Помилка підключення');
     } finally {
       setSearching(false);
     }
   };
 
   const createRoom = async (gameType, bet) => {
+    if (!initData) return;
     try {
       setSearching(true);
-      // TODO: Implement API endpoint
-      // const response = await api.post('/online-games/create', { gameType, bet }, {
-      //   headers: { 'x-telegram-init-data': initData }
-      // });
-      // setMyRoom(response.data.room);
-      alert('Створення кімнати...');
+      const response = await api.post('/online-games/rooms/create', { 
+        game_type: gameType, 
+        bet: bet,
+        max_players: 4
+      }, {
+        headers: { 'x-telegram-init-data': initData }
+      });
+      if (response.data.success) {
+        const roomResponse = await api.get(`/online-games/rooms/${response.data.room.id}`, {
+          headers: { 'x-telegram-init-data': initData }
+        });
+        setMyRoom(roomResponse.data.room);
+        onBalanceUpdate();
+      }
     } catch (error) {
-      console.error('Failed to create room:', error);
-      alert('Помилка створення кімнати');
+      alert(error.response?.data?.error || 'Помилка створення кімнати');
     } finally {
       setSearching(false);
     }
@@ -243,15 +250,15 @@ function OnlineGames({ user, initData, onBalanceUpdate }) {
             {activeRooms.map((room) => (
               <div key={room.id} className="room-card">
                 <div className="room-header">
-                  <h3>{room.game}</h3>
+                  <h3>{room.game_type === 'crash' ? '🚀 Crash' : room.game_type === 'dice' ? '🎲 Dice' : room.game_type === 'mines' ? '💣 Mines' : room.game_type}</h3>
                   <span className={`room-status-badge ${room.status}`}>
-                    {room.status === 'waiting' ? 'Очікування' : 'Гра'}
+                    {room.status === 'waiting' ? 'Очікування' : room.status === 'playing' ? 'Гра' : room.status}
                   </span>
                 </div>
                 <div className="room-details">
                   <div className="room-detail">
                     <span>👥</span>
-                    <span>{room.players}/{room.maxPlayers}</span>
+                    <span>{room.players}/{room.max_players}</span>
                   </div>
                   <div className="room-detail">
                     <span>💰</span>
@@ -261,9 +268,9 @@ function OnlineGames({ user, initData, onBalanceUpdate }) {
                 <button 
                   className="btn btn-primary join-btn"
                   onClick={() => joinRoom(room.id)}
-                  disabled={searching || room.players >= room.maxPlayers}
+                  disabled={searching || room.players >= room.max_players || room.status !== 'waiting'}
                 >
-                  {room.players >= room.maxPlayers ? 'Повна' : 'Приєднатися'}
+                  {room.players >= room.max_players ? 'Повна' : room.status !== 'waiting' ? 'Гра в процесі' : 'Приєднатися'}
                 </button>
               </div>
             ))}
