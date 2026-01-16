@@ -191,6 +191,8 @@
   object-fit: contain;
   object-position: center;
   display: block;
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
 }
 
 .currency-icon-fallback {
@@ -392,6 +394,8 @@
   object-fit: contain;
   object-position: center;
   display: block;
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
 }
 
 .bonus-coin-icon-fallback {
