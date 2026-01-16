@@ -49,7 +49,9 @@ app.use('/api/online-games', onlineGamesRoutes);
 
 // Set io in online-games routes
 import { setIO } from './routes/online-games.js';
-setIO(io);
+if (setIO) {
+  setIO(io);
+}
 
 // Health check
 app.get('/health', (req, res) => {

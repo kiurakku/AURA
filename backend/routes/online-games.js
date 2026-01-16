@@ -13,10 +13,16 @@ import {
 
 const router = express.Router();
 let db = null;
+let io = null; // Socket.io instance
 
 // In-memory room storage (in production, use Redis)
 const rooms = new Map();
 const roomPlayers = new Map(); // roomId -> [player1, player2, ...]
+
+// Set Socket.io instance (called from server.js)
+export function setIO(socketIoInstance) {
+  io = socketIoInstance;
+}
 
 // Export functions to access rooms from WebSocket server
 export function getRooms() {
