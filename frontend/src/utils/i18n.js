@@ -71,7 +71,11 @@ const translations = {
       enterAddress: 'Введіть адресу {currency} гаманця',
       processing: 'Обробка...',
       transactions: 'Історія транзакцій',
-      empty: 'Немає транзакцій'
+      empty: 'Немає транзакцій',
+      depositSoon: 'Функція депозиту буде доступна після налаштування платіжного шлюзу',
+      fillAllFields: 'Заповніть всі поля',
+      withdrawSoon: 'Функція виводу буде доступна після налаштування платіжного шлюзу',
+      withdrawError: 'Помилка виводу'
     },
     // Profile
     profile: {
@@ -154,7 +158,11 @@ const translations = {
       enterAddress: 'Введите адрес {currency} кошелька',
       processing: 'Обработка...',
       transactions: 'История транзакций',
-      empty: 'Нет транзакций'
+      empty: 'Нет транзакций',
+      depositSoon: 'Функция депозита будет доступна после настройки платежного шлюза',
+      fillAllFields: 'Заполните все поля',
+      withdrawSoon: 'Функция вывода будет доступна после настройки платежного шлюза',
+      withdrawError: 'Ошибка вывода'
     },
     profile: {
       title: 'Профиль',
@@ -235,7 +243,11 @@ const translations = {
       enterAddress: 'Enter {currency} wallet address',
       processing: 'Processing...',
       transactions: 'Transaction History',
-      empty: 'No transactions'
+      empty: 'No transactions',
+      depositSoon: 'Deposit function will be available after payment gateway setup',
+      fillAllFields: 'Please fill all fields',
+      withdrawSoon: 'Withdraw function will be available after payment gateway setup',
+      withdrawError: 'Withdraw error'
     },
     profile: {
       title: 'Profile',
@@ -316,7 +328,11 @@ const translations = {
       enterAddress: '输入{currency}钱包地址',
       processing: '处理中...',
       transactions: '交易历史',
-      empty: '没有交易'
+      empty: '没有交易',
+      depositSoon: '存款功能将在支付网关设置后可用',
+      fillAllFields: '请填写所有字段',
+      withdrawSoon: '提现功能将在支付网关设置后可用',
+      withdrawError: '提现错误'
     },
     profile: {
       title: '个人资料',
@@ -397,7 +413,11 @@ const translations = {
       enterAddress: 'Geben Sie die {currency} Brieftaschenadresse ein',
       processing: 'Wird verarbeitet...',
       transactions: 'Transaktionsverlauf',
-      empty: 'Keine Transaktionen'
+      empty: 'Keine Transaktionen',
+      depositSoon: 'Einzahlungsfunktion wird nach Einrichtung des Zahlungsgateways verfügbar sein',
+      fillAllFields: 'Bitte füllen Sie alle Felder aus',
+      withdrawSoon: 'Auszahlungsfunktion wird nach Einrichtung des Zahlungsgateways verfügbar sein',
+      withdrawError: 'Auszahlungsfehler'
     },
     profile: {
       title: 'Profil',
@@ -478,7 +498,11 @@ const translations = {
       enterAddress: 'Ingrese la dirección de billetera {currency}',
       processing: 'Procesando...',
       transactions: 'Historial de Transacciones',
-      empty: 'No hay transacciones'
+      empty: 'No hay transacciones',
+      depositSoon: 'La función de depósito estará disponible después de configurar la pasarela de pago',
+      fillAllFields: 'Por favor complete todos los campos',
+      withdrawSoon: 'La función de retiro estará disponible después de configurar la pasarela de pago',
+      withdrawError: 'Error de retiro'
     },
     profile: {
       title: 'Perfil',

@@ -519,7 +519,7 @@ function Games({ user, initData, onBalanceUpdate }) {
       {(!filteredAndSortedGames || filteredAndSortedGames.length === 0) && (
         <div className="empty-games glass-card">
           <div className="empty-icon">🎮</div>
-          <p className="empty-text">Немає ігор за цими фільтрами</p>
+          <p className="empty-text">{t('games.empty')}</p>
           <button 
             className="btn btn-primary"
             onClick={() => {
