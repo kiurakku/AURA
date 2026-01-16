@@ -126,58 +126,97 @@ router.get('/balance', validateTelegramAuth, (req, res) => {
 });
 
 // Play Crash game
-router.post('/games/crash', validateTelegramAuth, (req, res) => {
+router.post('/games/crash', validateTelegramAuth, async (req, res) => {
   try {
-    const { bet_amount, auto_cashout } = req.body;
+    const { bet_amount, auto_cashout, action, game_id, cashout_multiplier } = req.body;
     
-    if (!bet_amount || bet_amount < 0.1) {
-      return res.status(400).json({ error: 'Invalid bet amount' });
-    }
+    if (!db) db = await getDatabase();
+    
+    // Start new game
+    if (action === 'start' || !action) {
+      if (!bet_amount || bet_amount < 0.1) {
+        return res.status(400).json({ error: 'Invalid bet amount' });
+      }
 
-    if (!db) db = getDatabase();
-    const user = db.prepare('SELECT balance FROM users WHERE telegram_id = ?').get(req.user.id);
-    if (!user || (user.balance || 0) < bet_amount) {
-      return res.status(400).json({ error: 'Insufficient balance' });
-    }
+      const user = db.prepare('SELECT balance FROM users WHERE telegram_id = ?').get(req.user.id);
+      if (!user || (user.balance || 0) < bet_amount) {
+        return res.status(400).json({ error: 'Insufficient balance' });
+      }
 
-    // Generate seeds
-    const serverSeed = generateServerSeed();
-    const clientSeed = generateClientSeed();
-    const nonce = Date.now();
+      // Generate seeds
+      const serverSeed = generateServerSeed();
+      const clientSeed = generateClientSeed();
+      const nonce = Date.now();
+      
+      // Calculate multiplier
+      const multiplier = calculateCrashMultiplier(serverSeed, clientSeed, nonce);
+      
+      // Deduct bet immediately
+      const newBalance = (user.balance || 0) - bet_amount;
+      db.prepare('UPDATE users SET balance = ? WHERE telegram_id = ?').run(newBalance, req.user.id);
+      
+      // Save game record (win_amount will be updated on cashout)
+      const gameData = {
+        multiplier,
+        auto_cashout: auto_cashout || null,
+        status: 'playing',
+        win_amount: 0
+      };
+      
+      const resultHash = createResultHash(serverSeed, clientSeed, nonce);
+      db.prepare(`
+        INSERT INTO games (user_id, game_type, bet_amount, win_amount, game_data, server_seed, client_seed, result_hash)
+        VALUES (?, 'crash', ?, 0, ?, ?, ?, ?)
+      `).run(req.user.id, bet_amount, JSON.stringify(gameData), serverSeed, clientSeed, resultHash);
+      
+      // Get the inserted game ID
+      const insertedGames = db.prepare('SELECT * FROM games WHERE user_id = ? ORDER BY id DESC LIMIT 1').all(req.user.id);
+      const gameId = insertedGames[0] ? insertedGames[0].id : null;
+      
+      return res.json({
+        success: true,
+        game_id: gameId,
+        multiplier,
+        new_balance: newBalance,
+        server_seed: serverSeed,
+        client_seed: clientSeed,
+        nonce,
+        result_hash: resultHash
+      });
+    }
     
-    // Calculate multiplier
-    const multiplier = calculateCrashMultiplier(serverSeed, clientSeed, nonce);
-    const winAmount = auto_cashout && multiplier >= auto_cashout 
-      ? bet_amount * auto_cashout 
-      : bet_amount * multiplier;
+    // Cashout
+    if (action === 'cashout') {
+      const games = db.prepare('SELECT * FROM games WHERE id = ? AND user_id = ?').all(game_id, req.user.id);
+      const game = games[0] || null;
+      if (!game) {
+        return res.status(404).json({ error: 'Game not found' });
+      }
+      
+      const gameData = JSON.parse(game.game_data || '{}');
+      const actualMultiplier = cashout_multiplier || gameData.multiplier;
+      const winAmount = game.bet_amount * actualMultiplier;
+      
+      const user = db.prepare('SELECT balance FROM users WHERE telegram_id = ?').get(req.user.id);
+      const newBalance = (user.balance || 0) + winAmount;
+      
+      db.prepare('UPDATE users SET balance = ? WHERE telegram_id = ?').run(newBalance, req.user.id);
+      
+      gameData.status = 'completed';
+      gameData.win_amount = winAmount;
+      gameData.cashout_multiplier = actualMultiplier;
+      db.prepare('UPDATE games SET win_amount = ?, game_data = ? WHERE id = ?')
+        .run(winAmount, JSON.stringify(gameData), game_id);
+      
+      return res.json({
+        success: true,
+        multiplier: actualMultiplier,
+        win_amount: winAmount,
+        new_balance: newBalance
+      });
+    }
     
-    // Update balance
-    const newBalance = (user.balance || 0) - bet_amount + winAmount;
-    db.prepare('UPDATE users SET balance = ? WHERE telegram_id = ?').run(newBalance, req.user.id);
-    
-    // Save game record
-    const gameData = {
-      multiplier,
-      auto_cashout: auto_cashout || null,
-      win_amount: winAmount
-    };
-    
-    const resultHash = createResultHash(serverSeed, clientSeed, nonce);
-    db.prepare(`
-      INSERT INTO games (user_id, game_type, bet_amount, win_amount, game_data, server_seed, client_seed, result_hash)
-      VALUES (?, 'crash', ?, ?, ?, ?, ?, ?)
-    `).run(req.user.id, bet_amount, winAmount, JSON.stringify(gameData), serverSeed, clientSeed, resultHash);
-    
-    res.json({
-      success: true,
-      multiplier,
-      win_amount: winAmount,
-      new_balance: newBalance,
-      server_seed: serverSeed,
-      client_seed: clientSeed,
-      nonce,
-      result_hash: resultHash
-    });
+    res.status(400).json({ error: 'Invalid action' });
   } catch (error) {
     console.error('Crash game error:', error);
     res.status(500).json({ error: 'Game failed' });
@@ -271,7 +310,9 @@ router.post('/games/mines', validateTelegramAuth, async (req, res) => {
       const gameData = {
         mine_positions: minePositions,
         revealed: [],
-        status: 'playing'
+        status: 'playing',
+        grid_size: grid_size || 25,
+        mine_count: mine_count || 3
       };
       const resultHash = createResultHash(serverSeed, clientSeed, nonce);
       const gameRecord = db.prepare(`
@@ -309,11 +350,16 @@ router.post('/games/mines', validateTelegramAuth, async (req, res) => {
       const revealed = gameData.revealed || [];
       
       if (action === 'cashout') {
+        // Get grid_size and mine_count from game data
+        const gridSize = gameData.grid_size || 25;
+        const mineCount = gameData.mine_count || 3;
+        
         // Calculate multiplier based on revealed cells
-        const safeCells = (grid_size || 25) - mine_count;
-        const multiplier = 1 + (revealed.length * 0.1) * (1 - (mine_count / (grid_size || 25)));
-        const winAmount = bet_amount * multiplier;
-        const newBalance = (user.balance || 0) + winAmount;
+        const safeCells = gridSize - mineCount;
+        const multiplier = 1 + (revealed.length * 0.1) * (1 - (mineCount / gridSize));
+        const winAmount = game.bet_amount * multiplier;
+        const currentUser = db.prepare('SELECT balance FROM users WHERE telegram_id = ?').get(req.user.id);
+        const newBalance = (currentUser.balance || 0) + winAmount;
         
         db.prepare('UPDATE users SET balance = ? WHERE telegram_id = ?').run(newBalance, req.user.id);
         
@@ -344,12 +390,13 @@ router.post('/games/mines', validateTelegramAuth, async (req, res) => {
         db.prepare('UPDATE games SET game_data = ? WHERE id = ?')
           .run(JSON.stringify(gameData), game_id);
         
+        const currentUser = db.prepare('SELECT balance FROM users WHERE telegram_id = ?').get(req.user.id);
         return res.json({
           success: true,
           won: false,
           hit_mine: true,
           win_amount: 0,
-          new_balance: user.balance || 0
+          new_balance: currentUser.balance || 0
         });
       }
       
@@ -358,12 +405,16 @@ router.post('/games/mines', validateTelegramAuth, async (req, res) => {
       gameData.revealed = newRevealed;
       
       // Check if all safe cells revealed
-      const safeCells = (grid_size || 25) - mine_count;
+      const gridSize = gameData.grid_size || 25;
+      const mineCount = gameData.mine_count || 3;
+      const safeCells = gridSize - mineCount;
+      
       if (newRevealed.length === safeCells) {
         // Won!
-        const multiplier = 1 + (newRevealed.length * 0.1) * (1 - (mine_count / (grid_size || 25)));
-        const winAmount = bet_amount * multiplier;
-        const newBalance = (user.balance || 0) + winAmount;
+        const multiplier = 1 + (newRevealed.length * 0.1) * (1 - (mineCount / gridSize));
+        const winAmount = game.bet_amount * multiplier;
+        const currentUser = db.prepare('SELECT balance FROM users WHERE telegram_id = ?').get(req.user.id);
+        const newBalance = (currentUser.balance || 0) + winAmount;
         
         db.prepare('UPDATE users SET balance = ? WHERE telegram_id = ?').run(newBalance, req.user.id);
         gameData.status = 'completed';

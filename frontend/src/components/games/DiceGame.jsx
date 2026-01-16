@@ -48,7 +48,7 @@ function DiceGame({ initData, onBack, onBalanceUpdate }) {
     <div className="dice-game">
       <button className="back-btn" onClick={onBack}>← Назад</button>
       
-      <div className="dice-container glass">
+      <div className="dice-container glass-card">
         <div className="dice-display">
           {isRolling ? (
             <div className="dice-rolling">🎲</div>
