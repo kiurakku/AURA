@@ -511,7 +511,13 @@ export function setLanguage(lang) {
 }
 
 // Get translation
-export function t(key, lang = null) {
+export function t(key, params = null, lang = null) {
+  // Handle old signature: t(key, lang) - if second param is a string and not an object, treat it as lang
+  if (params && typeof params === 'string' && !lang) {
+    lang = params;
+    params = null;
+  }
+  
   const currentLang = lang || getLanguage();
   const keys = key.split('.');
   let value = translations[currentLang];
@@ -535,7 +541,16 @@ export function t(key, lang = null) {
     }
   }
   
-  return value || key;
+  let result = value || key;
+  
+  // Replace parameters if provided
+  if (params && typeof params === 'object' && typeof result === 'string') {
+    Object.keys(params).forEach(param => {
+      result = result.replace(new RegExp(`\\{${param}\\}`, 'g'), params[param]);
+    });
+  }
+  
+  return result;
 }
 
 // Language options
