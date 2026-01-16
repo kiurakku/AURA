@@ -223,10 +223,12 @@
 
 /* Category Tabs */
 .category-tabs {
+  position: relative;
   margin-bottom: 24px;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
+  scroll-behavior: smooth;
 }
 
 .category-tabs::-webkit-scrollbar {
@@ -238,6 +240,77 @@
   gap: 12px;
   padding: 4px;
   min-width: max-content;
+  animation: conveyor-scroll 30s linear infinite;
+}
+
+/* Conveyor animation - subtle continuous movement */
+@keyframes conveyor-scroll {
+  0% {
+    transform: translateX(0);
+  }
+  50% {
+    transform: translateX(-10px);
+  }
+  100% {
+    transform: translateX(0);
+  }
+}
+
+/* Pause animation on hover */
+.category-tabs:hover .tabs-scroll {
+  animation-play-state: paused;
+}
+
+/* Scroll indicators */
+.scroll-indicator {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 40px;
+  pointer-events: none;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+}
+
+.scroll-indicator-left {
+  left: 0;
+  background: linear-gradient(to right, var(--bg-primary), transparent);
+}
+
+.scroll-indicator-right {
+  right: 0;
+  background: linear-gradient(to left, var(--bg-primary), transparent);
+}
+
+.scroll-gradient {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    to right,
+    var(--bg-primary) 0%,
+    rgba(10, 10, 31, 0.8) 50%,
+    transparent 100%
+  );
+  animation: pulse-gradient 2s ease-in-out infinite;
+}
+
+.scroll-indicator-right .scroll-gradient {
+  background: linear-gradient(
+    to left,
+    var(--bg-primary) 0%,
+    rgba(10, 10, 31, 0.8) 50%,
+    transparent 100%
+  );
+}
+
+@keyframes pulse-gradient {
+  0%, 100% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 1;
+  }
 }
 
 .category-tab {

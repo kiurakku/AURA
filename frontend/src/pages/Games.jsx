@@ -417,19 +417,33 @@ function Games({ user, initData, onBalanceUpdate }) {
       )}
 
       {/* Category Tabs */}
-      <div className="category-tabs">
-        <div className="tabs-scroll">
+      <div className="category-tabs" ref={tabsContainerRef}>
+        <div className="tabs-scroll" ref={tabsScrollRef}>
           {categories.map((category) => (
             <button
               key={category.id}
+              data-category={category.id}
               className={`category-tab ${activeCategory === category.id ? 'active' : ''}`}
-              onClick={() => setActiveCategory(category.id)}
+              onClick={() => {
+                setActiveCategory(category.id);
+                scrollToCategory(category.id);
+              }}
             >
               <span className="tab-icon">{category.icon}</span>
               <span className="tab-name">{category.name}</span>
             </button>
           ))}
         </div>
+        {canScrollLeft && (
+          <div className="scroll-indicator scroll-indicator-left">
+            <div className="scroll-gradient"></div>
+          </div>
+        )}
+        {canScrollRight && (
+          <div className="scroll-indicator scroll-indicator-right">
+            <div className="scroll-gradient"></div>
+          </div>
+        )}
       </div>
 
       {/* Статистика фільтрів */}
