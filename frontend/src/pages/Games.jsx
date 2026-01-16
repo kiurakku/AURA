@@ -108,10 +108,13 @@ function Games({ user, initData, onBalanceUpdate }) {
               scrollDirection = 1;
             }
             
-            container.scrollBy({
-              left: scrollDirection * 0.3,
-              behavior: 'auto'
-            });
+            // Pause auto-scroll if user is interacting
+            if (container.scrollLeft === container.scrollLeft) {
+              container.scrollBy({
+                left: scrollDirection * 0.5,
+                behavior: 'auto'
+              });
+            }
           }, 30);
         }
       };
@@ -121,8 +124,10 @@ function Games({ user, initData, onBalanceUpdate }) {
       
       return () => {
         container.removeEventListener('scroll', checkScrollPosition);
+        container.removeEventListener('scroll', handleUserScroll);
         window.removeEventListener('resize', checkScrollPosition);
         if (autoScroll) clearInterval(autoScroll);
+        if (scrollTimeout) clearTimeout(scrollTimeout);
       };
     }
   }, []);
