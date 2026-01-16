@@ -113,32 +113,32 @@ export async function initBot() {
     const messages = {
       uk: {
         welcome: '🎰 *Ласкаво просимо до AURA Casino!*',
-        balance: '💰 Баланс',
-        bonus: '🎁 Бонусний баланс',
-        rank: '⭐ Ранг',
-        stats: '📊 Статистика',
-        history: '📜 Історія',
-        settings: '⚙️ Налаштування',
+        balance: 'Баланс',
+        bonus: 'Бонусний баланс',
+        rank: 'Ранг',
+        stats: 'Статистика',
+        history: 'Історія',
+        settings: 'Налаштування',
         openCasino: '🎰 Відкрити казино'
       },
       ru: {
         welcome: '🎰 *Добро пожаловать в AURA Casino!*',
-        balance: '💰 Баланс',
-        bonus: '🎁 Бонусный баланс',
-        rank: '⭐ Ранг',
-        stats: '📊 Статистика',
-        history: '📜 История',
-        settings: '⚙️ Настройки',
+        balance: 'Баланс',
+        bonus: 'Бонусный баланс',
+        rank: 'Ранг',
+        stats: 'Статистика',
+        history: 'История',
+        settings: 'Настройки',
         openCasino: '🎰 Открыть казино'
       },
       en: {
         welcome: '🎰 *Welcome to AURA Casino!*',
-        balance: '💰 Balance',
-        bonus: '🎁 Bonus Balance',
-        rank: '⭐ Rank',
-        stats: '📊 Statistics',
-        history: '📜 History',
-        settings: '⚙️ Settings',
+        balance: 'Balance',
+        bonus: 'Bonus Balance',
+        rank: 'Rank',
+        stats: 'Statistics',
+        history: 'History',
+        settings: 'Settings',
         openCasino: '🎰 Open Casino'
       }
     };
@@ -173,10 +173,24 @@ export async function initBot() {
       ]
     };
 
-    bot.sendMessage(chatId, welcomeText, {
-      parse_mode: 'Markdown',
-      reply_markup: keyboard
-    });
+    // Send photo with message
+    const photoPath = process.env.START_PHOTO_URL || `${process.env.TELEGRAM_WEBAPP_URL || 'https://auraslots.fly.dev'}/materials/Start.jpeg`;
+    
+    try {
+      // Try to send photo first
+      await bot.sendPhoto(chatId, photoPath, {
+        caption: welcomeText,
+        parse_mode: 'Markdown',
+        reply_markup: keyboard
+      });
+    } catch (error) {
+      // If photo fails, send text only
+      console.log('Failed to send photo, sending text only:', error.message);
+      bot.sendMessage(chatId, welcomeText, {
+        parse_mode: 'Markdown',
+        reply_markup: keyboard
+      });
+    }
   });
 
   // Bonus command
