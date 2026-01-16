@@ -453,64 +453,67 @@ function Games({ user, initData, onBalanceUpdate }) {
 
       {/* Games Grid */}
       <div className="games-grid">
-        {(filteredAndSortedGames || []).map((game, index) => (
-          <div 
-            key={game.id} 
-            className={`game-card glass-card ${game.featured ? 'featured' : ''} ${game.isPlayable ? 'playable' : 'coming-soon'} ${game.gameType === 'multiplayer' ? 'multiplayer' : ''}`}
-            style={{ animationDelay: `${index * 0.05}s` }}
-          >
-            <div className="game-card-content">
-              <div className="game-card-header">
-                <div className="game-icon-wrapper">
-                  <div className="game-icon">{game.icon}</div>
-                  {game.featured && <div className="featured-badge">⭐</div>}
-                  {game.isNew && <div className="new-badge">NEW</div>}
-                  {game.gameType === 'multiplayer' && (
-                    <div className="multiplayer-badge">👥</div>
-                  )}
+        {(filteredAndSortedGames || []).map((game, index) => {
+          if (!game || !game.id) return null;
+          return (
+            <div 
+              key={game.id} 
+              className={`game-card glass-card ${game.featured ? 'featured' : ''} ${game.isPlayable ? 'playable' : 'coming-soon'} ${game.gameType === 'multiplayer' ? 'multiplayer' : ''}`}
+              style={{ animationDelay: `${index * 0.05}s` }}
+            >
+              <div className="game-card-content">
+                <div className="game-card-header">
+                  <div className="game-icon-wrapper">
+                    <div className="game-icon">{game.icon || '🎮'}</div>
+                    {game.featured && <div className="featured-badge">⭐</div>}
+                    {game.isNew && <div className="new-badge">NEW</div>}
+                    {game.gameType === 'multiplayer' && (
+                      <div className="multiplayer-badge">👥</div>
+                    )}
+                  </div>
+                  <button
+                    className={`favorite-btn ${favorites.includes(game.id) ? 'active' : ''}`}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toggleFavorite(game.id);
+                    }}
+                  >
+                    {favorites.includes(game.id) ? '❤️' : '🤍'}
+                  </button>
                 </div>
-                <button
-                  className={`favorite-btn ${favorites.includes(game.id) ? 'active' : ''}`}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    toggleFavorite(game.id);
-                  }}
+                
+                <h3 className="game-name">{game.name || 'Unknown Game'}</h3>
+                <p className="game-description">{game.description || ''}</p>
+                
+                <div className="game-info">
+                  <div className="game-stats">
+                    <span className="stat-item">
+                      <span className="stat-label">Популярність:</span>
+                      <div className="popularity-bar">
+                        <div 
+                          className="popularity-fill" 
+                          style={{ width: `${game.popularity || 0}%` }}
+                        ></div>
+                      </div>
+                    </span>
+                    <span className="stat-item">
+                      <span className="stat-label">Ставка:</span>
+                      <span className="stat-value">{game.minBet || 0} - {game.maxBet || 0} USDT</span>
+                    </span>
+                  </div>
+                </div>
+
+                <button 
+                  className={`btn ${game.isPlayable ? 'btn-primary' : 'btn-secondary'} play-btn`}
+                  onClick={() => handlePlayGame(game)}
                 >
-                  {favorites.includes(game.id) ? '❤️' : '🤍'}
+                  {game.isPlayable ? '▶️ Грати' : '⏳ Скоро'}
                 </button>
               </div>
-              
-              <h3 className="game-name">{game.name}</h3>
-              <p className="game-description">{game.description}</p>
-              
-              <div className="game-info">
-                <div className="game-stats">
-                  <span className="stat-item">
-                    <span className="stat-label">Популярність:</span>
-                    <div className="popularity-bar">
-                      <div 
-                        className="popularity-fill" 
-                        style={{ width: `${game.popularity}%` }}
-                      ></div>
-                    </div>
-                  </span>
-                  <span className="stat-item">
-                    <span className="stat-label">Ставка:</span>
-                    <span className="stat-value">{game.minBet} - {game.maxBet} USDT</span>
-                  </span>
-                </div>
-              </div>
-
-              <button 
-                className={`btn ${game.isPlayable ? 'btn-primary' : 'btn-secondary'} play-btn`}
-                onClick={() => handlePlayGame(game)}
-              >
-                {game.isPlayable ? '▶️ Грати' : '⏳ Скоро'}
-              </button>
+              <div className="game-card-glow"></div>
             </div>
-            <div className="game-card-glow"></div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       {(!filteredAndSortedGames || filteredAndSortedGames.length === 0) && (
