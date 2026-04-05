@@ -6,6 +6,7 @@ import CrashGame from '../components/games/CrashGame';
 import DiceGame from '../components/games/DiceGame';
 import MinesGame from '../components/games/MinesGame';
 import { t } from '../utils/i18n';
+import { gameCardBackground, gameListIcon, UI, NAV } from '../constants/uiAssets';
 
 function OnlineGames({ user, initData, onBalanceUpdate }) {
   const [activeRooms, setActiveRooms] = useState([]);
@@ -302,7 +303,10 @@ function OnlineGames({ user, initData, onBalanceUpdate }) {
             ← Назад до онлайн ігор
           </button>
           <div className="bot-game-notice glass-card">
-            <h3>🤖 Гра з ботом (безкоштовно)</h3>
+            <h3 className="bot-game-notice-title">
+              <img src={UI.service} alt="" className="bot-game-notice-icon" decoding="async" />
+              Гра з ботом (безкоштовно)
+            </h3>
             <p>Ви граєте з ботом безкоштовно. Гроші не списуються та не нараховуються.</p>
           </div>
           <CrashGame 
@@ -321,7 +325,10 @@ function OnlineGames({ user, initData, onBalanceUpdate }) {
             ← Назад до онлайн ігор
           </button>
           <div className="bot-game-notice glass-card">
-            <h3>🤖 Гра з ботом (безкоштовно)</h3>
+            <h3 className="bot-game-notice-title">
+              <img src={UI.service} alt="" className="bot-game-notice-icon" decoding="async" />
+              Гра з ботом (безкоштовно)
+            </h3>
             <p>Ви граєте з ботом безкоштовно. Гроші не списуються та не нараховуються.</p>
           </div>
           <DiceGame 
@@ -340,7 +347,10 @@ function OnlineGames({ user, initData, onBalanceUpdate }) {
             ← Назад до онлайн ігор
           </button>
           <div className="bot-game-notice glass-card">
-            <h3>🤖 Гра з ботом (безкоштовно)</h3>
+            <h3 className="bot-game-notice-title">
+              <img src={UI.service} alt="" className="bot-game-notice-icon" decoding="async" />
+              Гра з ботом (безкоштовно)
+            </h3>
             <p>Ви граєте з ботом безкоштовно. Гроші не списуються та не нараховуються.</p>
           </div>
           <MinesGame 
@@ -375,8 +385,11 @@ function OnlineGames({ user, initData, onBalanceUpdate }) {
   }
 
   return (
-    <div className="online-games-page fade-in">
-      <h1 className="page-title">🌐 Онлайн ігри</h1>
+    <div className="online-games-page online-games-page--assets fade-in">
+      <div className="online-games-heading">
+        <img src={UI.unionHead} alt="" className="online-games-heading-icon" decoding="async" />
+        <h1 className="page-title">Онлайн ігри</h1>
+      </div>
       <p className="page-subtitle">Змагайся з іншими гравцями в реальному часі або грай з ботами безкоштовно!</p>
 
       {/* Active Rooms */}
@@ -387,18 +400,21 @@ function OnlineGames({ user, initData, onBalanceUpdate }) {
             {activeRooms.map((room) => (
               <div key={room.id} className="room-card">
                 <div className="room-header">
-                  <h3>{room.game_type === 'crash' ? '🚀 Crash' : room.game_type === 'dice' ? '🎲 Dice' : room.game_type === 'mines' ? '💣 Mines' : room.game_type}</h3>
+                  <h3 className="room-title-with-icon">
+                    <img src={gameListIcon(room.game_type)} alt="" className="room-title-icon" decoding="async" />
+                    <span className="room-title-text">{String(room.game_type || '').toUpperCase()}</span>
+                  </h3>
                   <span className={`room-status-badge ${room.status}`}>
                     {room.status === 'waiting' ? 'Очікування' : room.status === 'playing' ? 'Гра' : room.status}
                   </span>
                 </div>
                 <div className="room-details">
                   <div className="room-detail">
-                    <span>👥</span>
+                    <img src={NAV.referral} alt="" className="room-detail-icon" decoding="async" />
                     <span>{room.players}/{room.max_players}</span>
                   </div>
                   <div className="room-detail">
-                    <span>💰</span>
+                    <img src={UI.chipS} alt="" className="room-detail-icon" decoding="async" />
                     <span>{room.bet} USDT</span>
                   </div>
                 </div>
@@ -420,14 +436,20 @@ function OnlineGames({ user, initData, onBalanceUpdate }) {
         <h2 className="section-title">Доступні ігри</h2>
         <div className="online-games-grid">
           {onlineGames.map((game) => (
-            <div key={game.id} className={`online-game-card glass-card ${game.theme}`}>
-              <div className="game-icon-large">{game.icon}</div>
+            <div
+              key={game.id}
+              className={`online-game-card online-game-card--assets glass-card ${game.theme}`}
+              style={{ '--og-card-bg': `url(${gameCardBackground(game.id)})` }}
+            >
+              <div className="game-icon-large game-icon-large--asset">
+                <img src={gameListIcon(game.id)} alt="" decoding="async" />
+              </div>
               <h3 className="game-name">{game.name}</h3>
               <p className="game-description">{game.description}</p>
               <div className="game-info">
                 {game.canPlayWithBot ? (
-                  <div className="info-item">
-                    <span>🤖</span>
+                  <div className="info-item info-item--with-icon">
+                    <img src={UI.service} alt="" className="info-item-icon" decoding="async" />
                     <span>Гра з ботом (безкоштовно)</span>
                   </div>
                 ) : (
@@ -449,7 +471,7 @@ function OnlineGames({ user, initData, onBalanceUpdate }) {
                   onClick={() => playWithBot(game.id)}
                   disabled={searching}
                 >
-                  🤖 Грати з ботом
+                  Грати з ботом
                 </button>
               ) : (
                 <button 

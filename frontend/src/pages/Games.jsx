@@ -5,6 +5,7 @@ import DiceGame from '../components/games/DiceGame';
 import MinesGame from '../components/games/MinesGame';
 import OnlineGames from './OnlineGames';
 import { t } from '../utils/i18n';
+import { gameCardBackground, gameListIcon, categoryTabIcon, UI, NAV } from '../constants/uiAssets';
 
 function Games({ user, initData, onBalanceUpdate }) {
   const [activeGame, setActiveGame] = useState(null);
@@ -127,13 +128,16 @@ function Games({ user, initData, onBalanceUpdate }) {
     }
   }, []);
 
-  const categories = useMemo(() => [
-    { id: 'all', name: t('games.all'), icon: '🎮' },
-    { id: 'slots', name: t('games.slots'), icon: '🎰' },
-    { id: 'table', name: t('games.table'), icon: '🃏' },
-    { id: 'quick', name: t('games.quick'), icon: '⚡' },
-    { id: 'favorites', name: t('games.favorites'), icon: '⭐' }
-  ], []);
+  const categories = useMemo(
+    () => [
+      { id: 'all', name: t('games.all') },
+      { id: 'slots', name: t('games.slots') },
+      { id: 'table', name: t('games.table') },
+      { id: 'quick', name: t('games.quick') },
+      { id: 'favorites', name: t('games.favorites') },
+    ],
+    [t]
+  );
 
   const allGames = [
     // Соло ігри
@@ -444,13 +448,16 @@ function Games({ user, initData, onBalanceUpdate }) {
   }
 
   return (
-    <div className="games-page fade-in">
-      <h1 className="page-title">🎮 {t('games.title')}</h1>
+    <div className="games-page games-page--aura fade-in">
+      <h1 className="page-title page-title--with-asset">
+        <img src={UI.table_icon} alt="" className="page-title-icon" decoding="async" />
+        {t('games.title')}
+      </h1>
       
       {/* Пошук */}
       <div className="games-search">
         <div className="search-input-wrapper">
-          <span className="search-icon">🔍</span>
+          <img src={UI.filterNor} alt="" className="search-icon-img" decoding="async" />
           <input
             type="text"
             className="search-input"
@@ -460,18 +467,21 @@ function Games({ user, initData, onBalanceUpdate }) {
           />
           {searchQuery && (
             <button 
-              className="search-clear"
+              type="button"
+              className="search-clear search-clear--asset"
               onClick={() => setSearchQuery('')}
+              aria-label="Очистити"
             >
-              ✕
+              <img src={UI.searchDel} alt="" decoding="async" />
             </button>
           )}
         </div>
         <button 
-          className={`filter-toggle ${showFilters ? 'active' : ''}`}
+          type="button"
+          className={`filter-toggle filter-toggle--asset ${showFilters ? 'active' : ''}`}
           onClick={() => setShowFilters(!showFilters)}
         >
-          <span>⚙️</span>
+          <img src={showFilters ? UI.filterOn : UI.filterNor} alt="" className="filter-toggle-icon" decoding="async" />
           <span>{t('games.filters')}</span>
         </button>
       </div>
@@ -492,13 +502,13 @@ function Games({ user, initData, onBalanceUpdate }) {
                 className={`filter-btn ${gameType === 'solo' ? 'active' : ''}`}
                 onClick={() => setGameType('solo')}
               >
-                🎯 {t('games.solo')}
+                {t('games.solo')}
               </button>
               <button
                 className={`filter-btn ${gameType === 'multiplayer' ? 'active' : ''}`}
                 onClick={() => setGameType('multiplayer')}
               >
-                👥 {t('games.multiplayer')}
+                {t('games.multiplayer')}
               </button>
             </div>
           </div>
@@ -531,7 +541,12 @@ function Games({ user, initData, onBalanceUpdate }) {
                 scrollToCategory(category.id);
               }}
             >
-              <span className="tab-icon">{category.icon}</span>
+              <img
+                src={categoryTabIcon(category.id)}
+                alt=""
+                className="tab-icon-img"
+                decoding="async"
+              />
               <span className="tab-name">{category.name}</span>
             </button>
           ))}
@@ -574,28 +589,47 @@ function Games({ user, initData, onBalanceUpdate }) {
           return (
             <div 
               key={game.id} 
-              className={`game-card glass-card ${game.featured ? 'featured' : ''} ${game.isPlayable ? 'playable' : 'coming-soon'} ${game.gameType === 'multiplayer' ? 'multiplayer' : ''}`}
-              style={{ animationDelay: `${index * 0.05}s` }}
+              className={`game-card game-card--assets glass-card ${game.featured ? 'featured' : ''} ${game.isPlayable ? 'playable' : 'coming-soon'} ${game.gameType === 'multiplayer' ? 'multiplayer' : ''}`}
+              style={{
+                animationDelay: `${index * 0.05}s`,
+                '--game-card-bg': `url(${gameCardBackground(game.id)})`,
+                '--game-card-type': `url(${UI.gameCardType})`,
+              }}
               onClick={() => handlePlayGame(game)}
             >
               <div className="game-card-content">
                 <div className="game-card-header">
                   <div className="game-icon-wrapper">
-                    <div className="game-icon">{game.icon || '🎮'}</div>
-                    {game.featured && <div className="featured-badge">⭐</div>}
+                    <div className="game-icon game-icon--asset">
+                      <img src={gameListIcon(game.id)} alt="" decoding="async" />
+                    </div>
+                    {game.featured && (
+                      <div className="featured-badge featured-badge--asset">
+                        <img src={UI.creatorTag} alt="" decoding="async" />
+                      </div>
+                    )}
                     {game.isNew && <div className="new-badge">NEW</div>}
                     {game.gameType === 'multiplayer' && (
-                      <div className="multiplayer-badge">👥</div>
+                      <div className="multiplayer-badge multiplayer-badge--asset">
+                        <img src={NAV.referral} alt="" decoding="async" />
+                      </div>
                     )}
                   </div>
                   <button
-                    className={`favorite-btn ${favorites.includes(game.id) ? 'active' : ''}`}
+                    type="button"
+                    className={`favorite-btn favorite-btn--pin ${favorites.includes(game.id) ? 'active' : ''}`}
                     onClick={(e) => {
                       e.stopPropagation();
                       toggleFavorite(game.id);
                     }}
+                    aria-label="Обране"
                   >
-                    {favorites.includes(game.id) ? '❤️' : '🤍'}
+                    <img
+                      src={favorites.includes(game.id) ? UI.favoriteStarOn : UI.favoriteStarOff}
+                      alt=""
+                      decoding="async"
+                      className="favorite-btn-img"
+                    />
                   </button>
                 </div>
                 
@@ -624,7 +658,7 @@ function Games({ user, initData, onBalanceUpdate }) {
                   className={`btn ${game.isPlayable ? 'btn-primary' : 'btn-secondary'} play-btn`}
                   onClick={() => handlePlayGame(game)}
                 >
-                  {game.isPlayable ? `▶️ ${t('games.play')}` : `⏳ ${t('games.soon')}`}
+                  {game.isPlayable ? t('games.play') : t('games.soon')}
                 </button>
               </div>
               <div className="game-card-glow"></div>
@@ -634,8 +668,8 @@ function Games({ user, initData, onBalanceUpdate }) {
       </div>
 
       {(!filteredAndSortedGames || filteredAndSortedGames.length === 0) && (
-        <div className="empty-games glass-card">
-          <div className="empty-icon">🎮</div>
+        <div className="empty-games glass-card empty-games--assets">
+          <img src={UI.missionEmpty} alt="" className="empty-games-asset" decoding="async" />
           <p className="empty-text">{t('games.empty')}</p>
           <button 
             className="btn btn-primary"

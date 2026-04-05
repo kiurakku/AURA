@@ -19,7 +19,32 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 16px;
+  gap: 12px;
+  width: 100%;
+}
+
+.header-chip-mark {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.header-chip-mark img {
+  width: 36px;
+  height: 36px;
+  object-fit: contain;
+  filter: drop-shadow(0 0 10px rgba(116, 198, 157, 0.4));
+}
+
+.header--aura .avatar-wrapper {
+  background: linear-gradient(135deg, var(--accent-cyan-start), var(--accent-purple-end));
+  box-shadow: var(--shadow-glow-cyan);
+}
+
+.header--aura .avatar-placeholder {
+  background: linear-gradient(135deg, var(--accent-cyan-start), var(--accent-purple-end));
+  box-shadow: var(--shadow-glow-cyan);
 }
 
 .user-info {
@@ -104,6 +129,11 @@
   white-space: nowrap;
 }
 
+.header--aura .balance {
+  color: var(--palette-mint);
+  text-shadow: 0 0 14px rgba(116, 198, 157, 0.35);
+}
+
 .balance-value {
   background: linear-gradient(135deg, var(--accent-cyan-start), var(--accent-purple-start));
   -webkit-background-clip: text;
@@ -127,7 +157,7 @@
   align-items: center;
   justify-content: center;
   line-height: 1;
-  background: linear-gradient(135deg, var(--warning), #FFA500);
+  background: linear-gradient(135deg, var(--warning), #ffa500);
   color: white;
   box-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
   transition: all 0.3s ease;
@@ -135,11 +165,35 @@
   flex-shrink: 0;
 }
 
-.deposit-btn:hover {
+.deposit-btn--asset {
+  width: 52px;
+  height: 52px;
+  border-radius: 12px;
+  background: transparent;
+  box-shadow: none;
+}
+
+.deposit-btn--asset img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.35));
+}
+
+.deposit-btn--asset:hover {
+  transform: scale(1.06);
+  filter: brightness(1.08);
+}
+
+.deposit-btn--asset:active {
+  transform: scale(0.96);
+}
+
+.deposit-btn:not(.deposit-btn--asset):hover {
   transform: scale(1.1) rotate(90deg);
   box-shadow: 0 0 30px rgba(255, 215, 0, 0.8);
 }
 
-.deposit-btn:active {
+.deposit-btn:not(.deposit-btn--asset):active {
   transform: scale(0.95);
 }

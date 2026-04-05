@@ -1,0 +1,177 @@
+/**
+ * Бренд-палітра + семантичні токени (підключати після index.css).
+ * Кольори: #2457C5 #74C410 #FFDF31 #D4EDB5 #2E2E2E #E9EBF8 #237055 #CE2E2E #7FF803
+ * #000814 #FFFFFF #505050 #F0F0F0 #E9E9E9 #948F8F #6B6B6B #747474 #363636
+ */
+
+:root {
+  /* —— Палітра (прямі посилання) —— */
+  --palette-blue: #2457c5;
+  --palette-lime: #74c410;
+  --palette-yellow: #ffdf31;
+  --palette-mint: #d4edb5;
+  --palette-charcoal: #2e2e2e;
+  --palette-frost: #e9ebf8;
+  --palette-forest: #237055;
+  --palette-red: #ce2e2e;
+  --palette-neon: #7ff803;
+  --palette-ink: #000814;
+  --palette-white: #ffffff;
+  --palette-gray-mid: #505050;
+  --palette-gray-light-1: #f0f0f0;
+  --palette-gray-light-2: #e9e9e9;
+  --palette-gray-muted: #948f8f;
+  --palette-gray-66: #6b6b6b;
+  --palette-gray-74: #747474;
+  --palette-gray-36: #363636;
+
+  /* —— Семантика (фони / текст) —— */
+  --bg-primary: var(--palette-ink);
+  --bg-secondary: rgba(46, 46, 46, 0.96);
+  --bg-card: rgba(54, 54, 54, 0.82);
+  --bg-input: rgba(46, 46, 46, 0.9);
+
+  --text-primary: var(--palette-frost);
+  --text-secondary: var(--palette-gray-muted);
+  --text-placeholder: var(--palette-gray-66);
+
+  /* Імена purple/cyan збережені для сумісності зі старими стилями */
+  --accent-purple-start: var(--palette-blue);
+  --accent-purple-end: var(--palette-forest);
+  --accent-cyan-start: var(--palette-lime);
+  --accent-cyan-end: var(--palette-neon);
+
+  --accent-purple: var(--palette-blue);
+  --accent-cyan: var(--palette-lime);
+  --accent-pink: var(--palette-yellow);
+
+  --success: var(--palette-lime);
+  --error: var(--palette-red);
+  --warning: var(--palette-yellow);
+
+  --border-color: rgba(36, 87, 197, 0.42);
+  --border-cyan: rgba(127, 248, 3, 0.38);
+  --shadow-glow-purple: 0 0 26px rgba(36, 87, 197, 0.48);
+  --shadow-glow-cyan: 0 0 24px rgba(116, 196, 16, 0.42);
+  --shadow-soft: 0 8px 28px rgba(0, 0, 0, 0.5);
+}
+
+body {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  background-image:
+    linear-gradient(
+      185deg,
+      rgba(0, 8, 20, 0.92) 0%,
+      rgba(0, 8, 20, 0.97) 45%,
+      rgba(0, 8, 20, 1) 100%
+    ),
+    url('/materials/assets/bg_3.png'),
+    url('/materials/assets/bg_2.png');
+  background-size: auto, cover, cover;
+  background-position: center top, center center, center top;
+  background-attachment: fixed, fixed, fixed;
+}
+
+.app--aura-assets {
+  background: transparent;
+  position: relative;
+}
+
+.app--aura-assets::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.14;
+  background:
+    url('/materials/assets/bg_corner.png') left top / 140px no-repeat,
+    url('/materials/assets/fx_spotlight.png') 50% -8% / min(90vw, 520px) auto no-repeat;
+}
+
+.app--aura-assets::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.07;
+  background: url('/materials/assets/bg_dot_light.png') center / 420px repeat;
+}
+
+.app--aura-assets > *:not(.bottom-nav) {
+  position: relative;
+  z-index: 1;
+}
+
+.glass {
+  background: rgba(54, 54, 54, 0.58) !important;
+  border-color: var(--border-color) !important;
+}
+
+.glass-card {
+  background: linear-gradient(
+      165deg,
+      rgba(36, 87, 197, 0.12),
+      rgba(35, 112, 85, 0.14),
+      rgba(46, 46, 46, 0.78)
+    ),
+    url('/materials/assets/frame_bg.png') center / 100% 100% no-repeat !important;
+  border: 1px solid rgba(36, 87, 197, 0.32) !important;
+  box-shadow:
+    0 10px 36px rgba(0, 0, 0, 0.45),
+    inset 0 1px 0 rgba(233, 235, 248, 0.06) !important;
+}
+
+.btn-primary {
+  box-shadow: var(--shadow-glow-purple) !important;
+}
+
+.btn-primary:hover {
+  box-shadow:
+    0 0 28px rgba(36, 87, 197, 0.55),
+    0 0 42px rgba(116, 196, 16, 0.28) !important;
+}
+
+.bottom-nav--aura {
+  z-index: 1000;
+  background: linear-gradient(
+    180deg,
+    rgba(46, 46, 46, 0.98),
+    rgba(0, 8, 20, 0.99)
+  ) !important;
+  border-top: 1px solid rgba(36, 87, 197, 0.38) !important;
+  box-shadow: 0 -6px 24px rgba(0, 0, 0, 0.5) !important;
+}
+
+.bottom-nav--aura .nav-item:hover {
+  background: rgba(36, 87, 197, 0.14);
+  color: var(--accent-cyan-start);
+}
+
+.bottom-nav--aura .nav-item.active {
+  color: var(--accent-cyan-end);
+}
+
+.bottom-nav--aura .nav-item::before {
+  background: linear-gradient(90deg, var(--accent-cyan-start), var(--accent-cyan-end));
+}
+
+@keyframes glow {
+  0%,
+  100% {
+    box-shadow: 0 0 18px rgba(116, 196, 16, 0.4);
+  }
+  50% {
+    box-shadow:
+      0 0 28px rgba(127, 248, 3, 0.45),
+      0 0 40px rgba(36, 87, 197, 0.35);
+  }
+}
+
+.loading-screen {
+  background:
+    radial-gradient(ellipse at 50% 20%, rgba(36, 87, 197, 0.18), transparent 55%),
+    var(--bg-primary);
+}

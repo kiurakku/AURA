@@ -28,7 +28,13 @@ const translations = {
       quickPlay: 'Швидка гра',
       categories: 'Категорії ігор',
       recentWins: 'Останні виграші',
-      liveWins: 'LIVE'
+      liveWins: 'LIVE',
+      bannerNext: 'Наступний банер',
+      slide: 'Слайд',
+      neuralTeaserAria: 'Незабаром: нейромережа AURA',
+      neuralTeaserBadge: 'Незабаром',
+      neuralTeaserTitle: 'Нейромережа від AURA',
+      neuralTeaserDesc: 'Готуємо персональні підказки та розумніші ігрові сценарії. Слідкуйте за оновленнями.',
     },
     // Games
     games: {
@@ -56,7 +62,72 @@ const translations = {
       searchPlaceholder: 'Пошук ігор...',
       gameType: 'Тип гри',
       solo: 'Соло',
-      allTypes: 'Усі типи'
+      allTypes: 'Усі типи',
+      backAria: 'Назад',
+      betAmount: 'Сума ставки',
+      autoCashoutOptional: 'Автовивід (необов’язково)',
+      autoCashoutPlaceholder: 'напр. 2.00',
+      autoCashoutLine: 'Автовивід: {value}x',
+      betBtn: 'Зробити ставку',
+      cashoutBtn: 'Забрати виграш',
+      startGame: 'Почати',
+      starting: 'Запуск...',
+      processing: 'Обробка...',
+      minesCount: 'Мін: {count}',
+      minesLabel: 'Мін',
+      revealedLabel: 'Відкрито',
+      multiplierLabel: 'Множник',
+      currentMult: 'Поточний',
+      minesDemoHint: 'Демо: перегляд сітки. Відкривайте клітинки з акаунтом.',
+      authError: 'Помилка авторизації',
+      insufficientBalance: 'Недостатньо коштів. Мін. ставка 0.1 USDT. Поповніть баланс.',
+      cashoutError: 'Помилка виводу',
+      crashWon: 'Виведено! Множник: {mult}x. Виграш: {amount} USDT',
+      shareWinConfirm: 'Поділитися виграшем з друзями?',
+      diceWon: 'Ви виграли {amount} USDT!',
+      diceLost: 'Ви програли. Результат: {result}',
+      wonShort: 'виграли',
+      lostShort: 'програли',
+      diceBotLine: 'Результат: {result}. Ви {youStatus}, бот {botStatus}. (безкоштовно)',
+      mineHit: 'Міна! Гру завершено.',
+      minesWon: 'Виграш! Множник: {mult}x',
+      mineSlider: 'Кількість мін: {count}',
+      cellMine: 'Міна',
+      cellSafe: 'Безпечно',
+      cellHidden: 'Клітинка',
+      gameEnded: 'Гру завершено',
+      gameError: 'Помилка гри',
+      botCashoutFree: 'Бот вивів на {mult}x! (безкоштовно)',
+      crashTitle: 'CRASH',
+      diceTitle: 'DICE',
+      minesTitle: 'MINES',
+      diceWinStatus: 'Виграш!',
+      diceLoseStatus: 'Програш',
+      diceOver: 'Більше',
+      diceUnder: 'Менше',
+      diceTarget: 'Ціль: {value}',
+      diceRoll: 'Кинути',
+      diceRolling: 'Кидок...',
+      minesStartError: 'Не вдалося почати гру',
+      minesRevealError: 'Помилка відкриття',
+      minesCashout: 'Вивести',
+      minesCashedOut: 'Виведено! Множник: {mult}x',
+      minesDemoCashout: 'Демо: умовний вивід ~{mult}x (без балансу).',
+      minesOpenedLabel: 'Відкрито',
+    },
+    leaderboard: {
+      title: 'Рейтинг гравців',
+      day: 'День',
+      week: 'Тиждень',
+      all: 'Весь час',
+      periodDay: 'Сьогодні',
+      periodWeek: 'Цей тиждень',
+      periodAll: 'За весь час',
+      loading: 'Завантаження...',
+      empty: 'Поки що немає виграшів',
+      emptyHint: 'Станьте першим у таблиці!',
+      won: 'Виграно',
+      rank: 'Ранг',
     },
     // Online Games
     onlineGames: {
@@ -109,7 +180,9 @@ const translations = {
     wallet: {
       title: 'Гаманець',
       balance: 'Ваш баланс',
-      bonusBalance: 'Бонусний баланс',
+      mainBalance: 'Основний',
+      bonusBalance: 'Бонус',
+      total: 'Всього',
       deposit: 'Поповнити',
       withdraw: 'Вивести',
       currency: 'Вибір валюти',
@@ -416,7 +489,9 @@ AURA Casino - це платформа для розваг та ігор.
     wallet: {
       title: 'Кошелек',
       balance: 'Ваш баланс',
-      bonusBalance: 'Бонусный баланс',
+      mainBalance: 'Основной',
+      bonusBalance: 'Бонус',
+      total: 'Всего',
       deposit: 'Пополнить',
       withdraw: 'Вывести',
       currency: 'Выбор валюты',
@@ -657,7 +732,13 @@ AURA Casino - это платформа для развлечений и игр.
       quickPlay: 'Quick Play',
       categories: 'Game Categories',
       recentWins: 'Recent Wins',
-      liveWins: 'LIVE'
+      liveWins: 'LIVE',
+      bannerNext: 'Next banner',
+      slide: 'Slide',
+      neuralTeaserAria: 'Coming soon: AURA neural features',
+      neuralTeaserBadge: 'Coming soon',
+      neuralTeaserTitle: 'Neural layer by AURA',
+      neuralTeaserDesc: 'We are preparing personalized hints and smarter game flows. Stay tuned.',
     },
     games: {
       title: 'Games Library',
@@ -667,12 +748,128 @@ AURA Casino - это платформа для развлечений и игр.
       quick: 'Quick',
       favorites: 'Favorites',
       play: 'Play',
-      empty: 'No games in this category'
+      empty: 'No games in this category',
+      search: 'Search',
+      filters: 'Filters',
+      sortBy: 'Sort by',
+      popular: 'Popularity',
+      new: 'New',
+      name: 'Name',
+      foundGames: 'Found: {count} games',
+      clearFilters: 'Clear filters',
+      soon: 'Soon',
+      gameInProgress: 'This game is in development. Coming soon!',
+      popularity: 'Popularity',
+      bet: 'Bet',
+      multiplayer: 'Multiplayer',
+      searchPlaceholder: 'Search games...',
+      gameType: 'Game type',
+      solo: 'Solo',
+      allTypes: 'All types',
+      backAria: 'Back',
+      betAmount: 'Bet amount',
+      autoCashoutOptional: 'Auto cashout (optional)',
+      autoCashoutPlaceholder: 'e.g. 2.00',
+      autoCashoutLine: 'Auto cashout: {value}x',
+      betBtn: 'Place bet',
+      cashoutBtn: 'Cash out',
+      startGame: 'Start',
+      starting: 'Starting...',
+      processing: 'Processing...',
+      minesCount: 'Mines: {count}',
+      minesLabel: 'Mines',
+      revealedLabel: 'Revealed',
+      multiplierLabel: 'Multiplier',
+      currentMult: 'Current',
+      minesDemoHint: 'Demo: grid preview. Tap cells with your account.',
+      authError: 'Auth error',
+      insufficientBalance: 'Insufficient balance. Min bet 0.1 USDT. Top up to continue.',
+      cashoutError: 'Cashout error',
+      crashWon: 'Cashed out! Multiplier: {mult}x. Win: {amount} USDT',
+      shareWinConfirm: 'Share your win with friends?',
+      diceWon: 'You won {amount} USDT!',
+      diceLost: 'You lost. Result: {result}',
+      wonShort: 'won',
+      lostShort: 'lost',
+      diceBotLine: 'Result: {result}. You {youStatus}, bot {botStatus}. (Free play)',
+      mineHit: 'You hit a mine! Game over.',
+      minesWon: 'You won! Multiplier: {mult}x',
+      mineSlider: 'Mines: {count}',
+      cellMine: 'Mine',
+      cellSafe: 'Safe',
+      cellHidden: 'Cell',
+      gameEnded: 'Game ended',
+      gameError: 'Game error',
+      botCashoutFree: 'Bot cashed out at {mult}x! (Free play)',
+      crashTitle: 'CRASH',
+      diceTitle: 'DICE',
+      minesTitle: 'MINES',
+      diceWinStatus: 'Win!',
+      diceLoseStatus: 'Loss',
+      diceOver: 'Over',
+      diceUnder: 'Under',
+      diceTarget: 'Target: {value}',
+      diceRoll: 'Roll',
+      diceRolling: 'Rolling...',
+      minesStartError: 'Failed to start game',
+      minesRevealError: 'Reveal error',
+      minesCashout: 'Cash out',
+      minesCashedOut: 'You cashed out! Multiplier: {mult}x',
+      minesDemoCashout: 'Demo: hypothetical cashout ~{mult}x (no balance change).',
+      minesOpenedLabel: 'Opened',
+    },
+    onlineGames: {
+      title: 'Online games',
+      subtitle: 'Play against others in real time or vs bots for free!',
+      activeRooms: 'Active rooms',
+      availableGames: 'Available games',
+      waiting: 'Waiting',
+      playing: 'Playing',
+      join: 'Join',
+      full: 'Full',
+      createRoom: 'Create room',
+      playWithBot: 'Play with bot',
+      playWithBotFree: 'Bot game (free)',
+      minBet: 'Min. bet',
+      players: 'Players',
+      upTo: 'up to',
+      backToOnlineGames: 'Back to online games',
+      botGameTitle: 'Bot game (free)',
+      botGameDesc: 'You play for free. No real balance charged or credited.',
+      joinError: 'Join error',
+      createError: 'Create room error',
+      waitingPlayers: 'Waiting for players...',
+      gameInProgress: 'Game in progress',
+      status: 'Status',
+      bet: 'Bet',
+      gameStarted: 'Game started!',
+      startGameError: 'Start game error',
+      startGame: 'Start game',
+      ready: 'Ready',
+      notReady: 'Not ready',
+      gameFinished: 'Game finished',
+      connectionError: 'Connection error',
+    },
+    leaderboard: {
+      title: 'Player ranking',
+      day: 'Day',
+      week: 'Week',
+      all: 'All time',
+      periodDay: 'Today',
+      periodWeek: 'This week',
+      periodAll: 'All time',
+      loading: 'Loading...',
+      empty: 'No wins yet',
+      emptyHint: 'Be the first on the board!',
+      won: 'Won',
+      rank: 'Rank',
     },
     wallet: {
       title: 'Wallet',
       balance: 'Your Balance',
-      bonusBalance: 'Bonus Balance',
+      mainBalance: 'Main',
+      bonusBalance: 'Bonus',
+      total: 'Total',
       deposit: 'Deposit',
       withdraw: 'Withdraw',
       currency: 'Currency Selection',
@@ -805,7 +1002,9 @@ AURA Casino - это платформа для развлечений и игр.
     wallet: {
       title: '钱包',
       balance: '您的余额',
-      bonusBalance: '奖金余额',
+      mainBalance: '主余额',
+      bonusBalance: '奖金',
+      total: '总计',
       deposit: '充值',
       withdraw: '提现',
       currency: '货币选择',
@@ -912,7 +1111,9 @@ AURA Casino - это платформа для развлечений и игр.
     wallet: {
       title: 'Geldbörse',
       balance: 'Ihr Guthaben',
-      bonusBalance: 'Bonusguthaben',
+      mainBalance: 'Haupt',
+      bonusBalance: 'Bonus',
+      total: 'Gesamt',
       deposit: 'Einzahlen',
       withdraw: 'Abheben',
       currency: 'Währungsauswahl',
@@ -1036,7 +1237,9 @@ AURA Casino - это платформа для развлечений и игр.
     wallet: {
       title: 'Billetera',
       balance: 'Tu Saldo',
-      bonusBalance: 'Saldo de Bonificación',
+      mainBalance: 'Principal',
+      bonusBalance: 'Bonificación',
+      total: 'Total',
       deposit: 'Depositar',
       withdraw: 'Retirar',
       currency: 'Selección de Moneda',
@@ -1114,10 +1317,56 @@ AURA Casino - это платформа для развлечений и игр.
   }
 };
 
+/** Мови, для яких є club_notice_tittle_*.png + підтримка UI */
+export const UI_SUPPORTED_LANGUAGE_CODES = [
+  'en',
+  'uk',
+  'ru',
+  'es',
+  'hi',
+  'it',
+  'jp',
+  'kr',
+  'pt',
+  'sc',
+  'th',
+  'tr',
+  'vi',
+];
+
+const UI_LANG_ALIASES = {
+  zh: 'sc',
+  cn: 'sc',
+  de: 'en',
+  ja: 'jp',
+  ko: 'kr',
+};
+
+/** Китайська в асетах як sc (спрощена) */
+translations.sc = translations.zh;
+
+/** Повні копії англійської для мов без окремого файлу перекладів */
+(function cloneEnIntoSupported() {
+  const payload = JSON.stringify(translations.en);
+  for (const code of ['hi', 'it', 'jp', 'kr', 'pt', 'th', 'tr', 'vi']) {
+    translations[code] = JSON.parse(payload);
+  }
+})();
+
+function normalizeLanguageCode(code) {
+  if (!code) return 'en';
+  const c = String(code).toLowerCase().split('-')[0];
+  const mapped = UI_LANG_ALIASES[c] || c;
+  if (translations[mapped]) return mapped;
+  if (UI_SUPPORTED_LANGUAGE_CODES.includes(mapped)) return mapped;
+  return 'en';
+}
+
 // Get language from localStorage or default to English
 export function getLanguage() {
   if (typeof window !== 'undefined') {
-    return localStorage.getItem('language') || 'en';
+    const raw = localStorage.getItem('language') || 'en';
+    return normalizeLanguageCode(raw);
   }
   return 'en';
 }
@@ -1125,7 +1374,7 @@ export function getLanguage() {
 // Set language
 export function setLanguage(lang) {
   if (typeof window !== 'undefined') {
-    localStorage.setItem('language', lang);
+    localStorage.setItem('language', normalizeLanguageCode(lang));
   }
 }
 
@@ -1139,28 +1388,21 @@ export function t(key, params = null, lang = null) {
   
   const currentLang = lang || getLanguage();
   const keys = key.split('.');
-  let value = translations[currentLang];
-  
-  for (const k of keys) {
-    value = value?.[k];
-    if (!value) {
-      // Fallback to English
-      value = translations.en;
-      for (const k2 of keys) {
-        value = value?.[k2];
-      }
-      if (!value) {
-        // Final fallback to Ukrainian if English also fails
-        value = translations.uk;
-        for (const k3 of keys) {
-          value = value?.[k3];
-        }
-      }
+  const fallbackChain = [currentLang, 'en', 'ru', 'es'];
+  let result = null;
+  for (const L of fallbackChain) {
+    const bundle = translations[L];
+    if (!bundle) continue;
+    let v = bundle;
+    for (const k of keys) {
+      v = v?.[k];
+    }
+    if (typeof v === 'string') {
+      result = v;
       break;
     }
   }
-  
-  let result = value || key;
+  result = result || key;
   
   // Replace parameters if provided
   if (params && typeof params === 'object' && typeof result === 'string') {
@@ -1172,14 +1414,21 @@ export function t(key, params = null, lang = null) {
   return result;
 }
 
-// Language options
+// Мови інтерфейсу (узгоджено з club_notice_tittle_*)
 export const languages = [
+  { code: 'en', name: 'English', flag: '🇬🇧' },
   { code: 'uk', name: 'Українська', flag: '🇺🇦' },
   { code: 'ru', name: 'Русский', flag: '🇷🇺' },
-  { code: 'en', name: 'English', flag: '🇬🇧' },
-  { code: 'zh', name: '中文', flag: '🇨🇳' },
-  { code: 'de', name: 'Deutsch', flag: '🇩🇪' },
-  { code: 'es', name: 'Español', flag: '🇪🇸' }
+  { code: 'es', name: 'Español', flag: '🇪🇸' },
+  { code: 'hi', name: 'हिन्दी', flag: '🇮🇳' },
+  { code: 'it', name: 'Italiano', flag: '🇮🇹' },
+  { code: 'jp', name: '日本語', flag: '🇯🇵' },
+  { code: 'kr', name: '한국어', flag: '🇰🇷' },
+  { code: 'pt', name: 'Português', flag: '🇵🇹' },
+  { code: 'sc', name: '中文', flag: '🇨🇳' },
+  { code: 'th', name: 'ไทย', flag: '🇹🇭' },
+  { code: 'tr', name: 'Türkçe', flag: '🇹🇷' },
+  { code: 'vi', name: 'Tiếng Việt', flag: '🇻🇳' },
 ];
 
 export default { t, getLanguage, setLanguage, languages };

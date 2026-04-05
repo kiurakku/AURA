@@ -1,7 +1,10 @@
 import React, { useState } from 'react';
 import './MinesGame.css';
+import '../../styles/gameAssetsChrome.css';
 import { api } from '../../utils/api';
 import { shareWin } from '../../utils/shareWin';
+import { UI, gameLobbyTheme, gameListIcon } from '../../constants/uiAssets';
+import { t } from '../../utils/i18n';
 
 function MinesGame({ initData, onBack, onBalanceUpdate, botMode = false }) {
   const [betAmount, setBetAmount] = useState(1.0);
@@ -20,12 +23,12 @@ function MinesGame({ initData, onBack, onBalanceUpdate, botMode = false }) {
     setLoading(true);
     try {
       if (!initData && !botMode) {
-        alert('Помилка авторизації');
+        alert(t('games.authError'));
         setLoading(false);
         return;
       }
       
-      const endpoint = botMode ? '/api/games/mines/bot' : '/api/games/mines';
+      const endpoint = botMode ? '/games/mines/bot' : '/games/mines';
       const response = await api.post(endpoint, {
         bet_amount: botMode ? 0 : betAmount,
         mine_count: mineCount,
@@ -46,9 +49,9 @@ function MinesGame({ initData, onBack, onBalanceUpdate, botMode = false }) {
       setMines([]);
       setGameResult(null);
       if (botMode && data.bot_revealed) {
-        // Show bot's revealed cells
         setRevealed(new Set(data.bot_revealed));
       }
+      setLoading(false);
     } catch (error) {
       console.error('Start game error:', error);
       setLoading(false);
@@ -56,29 +59,24 @@ function MinesGame({ initData, onBack, onBalanceUpdate, botMode = false }) {
       // Check for insufficient balance
       if (error.response?.status === 400 && error.response?.data?.error === 'Insufficient balance') {
         if (window.Telegram?.WebApp) {
-          window.Telegram.WebApp.showAlert(
-            'Недостатньо коштів на балансі!\n\n' +
-            'Мінімальна ставка: 0.1 USDT\n' +
-            'Поповніть баланс, щоб продовжити гру.'
-          );
+          window.Telegram.WebApp.showAlert(t('games.insufficientBalance'));
           window.dispatchEvent(new CustomEvent('navigate', { detail: 'wallet' }));
         } else {
-          alert('Недостатньо коштів на балансі! Мінімальна ставка: 0.1 USDT');
+          alert(t('games.insufficientBalance'));
         }
       } else {
-        alert(error.response?.data?.error || 'Помилка запуску гри');
+        alert(error.response?.data?.error || t('games.minesStartError'));
       }
     }
   };
 
   const revealCell = async (index) => {
-    if (!isPlaying || revealed.has(index) || loading || gameResult) return;
+    if (!isPlaying || revealed.has(index) || loading || gameResult || botMode) return;
 
     setLoading(true);
     try {
-      const endpoint = botMode ? '/api/games/mines/bot' : '/api/games/mines';
-      const response = await api.post(endpoint, {
-        game_id: botMode ? null : gameId,
+      const response = await api.post('/games/mines', {
+        game_id: gameId,
         action: 'reveal',
         cell_index: index
       }, {
@@ -99,7 +97,7 @@ function MinesGame({ initData, onBack, onBalanceUpdate, botMode = false }) {
           setMines([index]); // Fallback: at least show the hit mine
         }
         onBalanceUpdate();
-        alert('💣 Ви натрапили на міну! Гра закінчена.');
+        alert(t('games.mineHit'));
         return;
       }
 
@@ -109,7 +107,7 @@ function MinesGame({ initData, onBack, onBalanceUpdate, botMode = false }) {
         setGameResult({ won: true, multiplier: data.multiplier });
         setRevealed(prev => new Set([...prev, index]));
         onBalanceUpdate();
-        alert(`🎉 Ви виграли! Множник: ${data.multiplier.toFixed(2)}x`);
+        alert(t('games.minesWon', { mult: data.multiplier.toFixed(2) }));
         return;
       }
 
@@ -117,7 +115,7 @@ function MinesGame({ initData, onBack, onBalanceUpdate, botMode = false }) {
       setRevealed(prev => new Set([...prev, index]));
     } catch (error) {
       console.error('Reveal cell error:', error);
-      alert(error.response?.data?.error || 'Помилка');
+      alert(error.response?.data?.error || t('games.minesRevealError'));
     } finally {
       setLoading(false);
     }
@@ -125,10 +123,18 @@ function MinesGame({ initData, onBack, onBalanceUpdate, botMode = false }) {
 
   const cashout = async () => {
     if (!isPlaying || revealed.size === 0 || loading || gameResult) return;
-    
+
+    if (botMode) {
+      const mult = calculateMultiplier();
+      setIsPlaying(false);
+      setGameResult({ won: true, multiplier: mult });
+      alert(t('games.minesDemoCashout', { mult: mult.toFixed(2) }));
+      return;
+    }
+
     setLoading(true);
     try {
-      const response = await api.post('/api/games/mines', {
+      const response = await api.post('/games/mines', {
         game_id: gameId,
         action: 'cashout'
       }, {
@@ -139,14 +145,14 @@ function MinesGame({ initData, onBack, onBalanceUpdate, botMode = false }) {
       setIsPlaying(false);
       setGameResult({ won: true, multiplier: data.multiplier });
       onBalanceUpdate();
-      alert(`💰 Ви вивели кошти! Множник: ${data.multiplier.toFixed(2)}x`);
+      alert(t('games.minesCashedOut', { mult: data.multiplier.toFixed(2) }));
       // Offer to share win
-      if (data.win_amount > 0 && window.confirm('Поділитися виграшем з друзями?')) {
+      if (data.win_amount > 0 && window.confirm(t('games.shareWinConfirm'))) {
         shareWin('Mines', data.win_amount, data.multiplier);
       }
     } catch (error) {
       console.error('Cashout error:', error);
-      alert(error.response?.data?.error || 'Помилка виводу');
+      alert(error.response?.data?.error || t('games.cashoutError'));
     } finally {
       setLoading(false);
     }
@@ -167,43 +173,79 @@ function MinesGame({ initData, onBack, onBalanceUpdate, botMode = false }) {
       
       cells.push(
         <button
+          type="button"
           key={i}
-          className={`mine-cell ${isRevealed ? 'revealed' : ''} ${isMine ? 'mine' : ''}`}
+          className={`mine-cell ${isRevealed ? 'revealed' : ''} ${isMine ? 'mine' : ''} ${!isRevealed && !isMine ? 'mine-cell--hidden' : ''}`}
           onClick={() => revealCell(i)}
-          disabled={!isPlaying || isRevealed || loading || gameResult}
+          disabled={!isPlaying || isRevealed || loading || gameResult || botMode}
+          aria-label={
+            isRevealed ? (isMine ? t('games.cellMine') : t('games.cellSafe')) : t('games.cellHidden')
+          }
         >
-          {isRevealed && !isMine && '💎'}
-          {isMine && '💣'}
+          {isRevealed && !isMine && (
+            <img src={UI.safeGem} alt="" className="mine-cell-icon" decoding="async" />
+          )}
+          {isMine && (
+            <img src={UI.bombRed} alt="" className="mine-cell-icon mine-cell-icon--bomb" decoding="async" />
+          )}
         </button>
       );
     }
     return cells;
   };
 
+  const theme = gameLobbyTheme('mines');
+  const panelStyle = {
+    '--game-bg-img': `url(${theme.bodyBg})`,
+    '--game-lobby-top': `url(${theme.topBar})`,
+    '--game-frame-img': `url(${theme.frame})`,
+    '--game-table-img': `url(${theme.table})`,
+    '--asset-btn-green': `url(${UI.btnGreen})`,
+    '--asset-btn-green-active': `url(${UI.btnGreenActive})`,
+    '--asset-btn-blue': `url(${UI.btnBlue})`,
+    '--asset-btn-yellow': `url(${UI.btnYellow})`,
+    '--asset-btn-gray': `url(${UI.btnGray})`,
+    '--mine-cell-tile': `url(${UI.cellHidden})`,
+    '--mine-cell-tile-on': `url(${UI.cellOn})`,
+  };
+
   return (
-    <div className="mines-game">
-      <button className="back-btn" onClick={onBack}>← Назад</button>
-      
-      <div className="mines-container glass-card">
+    <div className="mines-game game-screen--assets" style={panelStyle}>
+      <button type="button" className="game-back-asset" onClick={onBack} aria-label={t('games.backAria')}>
+        <img src={UI.back} alt="" decoding="async" />
+      </button>
+
+      <div className="game-lobby-strip" aria-hidden />
+      <div className="game-chip-deco-row" aria-hidden>
+        <img src={theme.chipL} alt="" decoding="async" />
+        <img src={theme.chipR} alt="" decoding="async" />
+      </div>
+
+      <div className="mines-container game-panel-asset">
+        <div className="game-title-row">
+          <img src={gameListIcon('mines')} alt="" decoding="async" />
+          <h2>{t('games.minesTitle')}</h2>
+        </div>
+        {botMode && <p className="mines-demo-hint">{t('games.minesDemoHint')}</p>}
         <div className="mines-header">
           <div className="mines-info">
             <div className="info-item">
-              <span className="info-label">Мін:</span>
+              <span className="info-label">{t('games.minesLabel')}:</span>
               <span className="info-value">{mineCount}</span>
             </div>
             <div className="info-item">
-              <span className="info-label">Відкрито:</span>
+              <span className="info-label">{t('games.minesOpenedLabel')}:</span>
               <span className="info-value">{revealed.size}</span>
             </div>
             {gameResult && (
               <div className="info-item">
-                <span className="info-label">Множник:</span>
+                <span className="info-label">{t('games.multiplierLabel')}:</span>
                 <span className="info-value">{gameResult.multiplier.toFixed(2)}x</span>
               </div>
             )}
             {isPlaying && !gameResult && (
               <div className="info-item">
-                <span className="info-label">Поточний:</span>
+                <span className="info-label">{t('games.currentMult')}:</span>
                 <span className="info-value">{calculateMultiplier().toFixed(2)}x</span>
               </div>
             )}
@@ -216,7 +258,7 @@ function MinesGame({ initData, onBack, onBalanceUpdate, botMode = false }) {
 
         <div className="mines-controls">
           <div className="bet-input-group">
-            <label>Сума ставки</label>
+            <label>{t('games.betAmount')}</label>
             <input
               type="number"
               className="input"
@@ -229,7 +271,7 @@ function MinesGame({ initData, onBack, onBalanceUpdate, botMode = false }) {
           </div>
 
           <div className="mine-count-selector">
-            <label>Кількість мін: {mineCount}</label>
+            <label>{t('games.mineSlider', { count: mineCount })}</label>
             <input
               type="range"
               min="1"
@@ -243,20 +285,22 @@ function MinesGame({ initData, onBack, onBalanceUpdate, botMode = false }) {
 
           <div className="game-actions">
             {!isPlaying ? (
-              <button 
-                className="btn btn-primary start-btn" 
+              <button
+                type="button"
+                className="asset-btn asset-btn--primary start-btn"
                 onClick={startGame}
                 disabled={loading}
               >
-                {loading ? 'Запуск...' : 'Почати гру'}
+                {loading ? t('games.starting') : t('onlineGames.startGame')}
               </button>
             ) : (
-              <button 
-                className="btn btn-secondary cashout-btn" 
+              <button
+                type="button"
+                className="asset-btn asset-btn--warn cashout-btn"
                 onClick={cashout}
                 disabled={loading || revealed.size === 0 || gameResult}
               >
-                {loading ? 'Обробка...' : 'Вивести'}
+                {loading ? t('games.processing') : t('games.minesCashout')}
               </button>
             )}
           </div>

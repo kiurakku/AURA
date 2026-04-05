@@ -7,6 +7,13 @@ import LanguageSelector from '../components/LanguageSelector';
 import PrivacySettings from '../components/PrivacySettings';
 import WalletManager from '../components/WalletManager';
 import LegalDocuments from '../components/LegalDocuments';
+import {
+  UI,
+  avatarHaloByProgress,
+  avatarHaloTier,
+  rankStarAsset,
+  rankLevelFromWagered,
+} from '../constants/uiAssets';
 
 function Profile({ user, initData, onLanguageChange }) {
   const [gameHistory, setGameHistory] = useState([]);
@@ -130,6 +137,13 @@ function Profile({ user, initData, onLanguageChange }) {
   };
 
   const playerStatus = getPlayerStatus();
+  const wagerForRank = userRank?.total_wagered ?? stats.totalWagered;
+  const displayRankLevel = (() => {
+    const rid = Number(userRank?.rank_id);
+    if (rid >= 1 && rid <= 10) return rid;
+    return rankLevelFromWagered(wagerForRank);
+  })();
+
   const nextRank = stats.totalWagered >= 50000 ? null : 
     stats.totalWagered >= 25000 ? { name: 'Aura Legend', needed: 50000 - stats.totalWagered } :
     stats.totalWagered >= 10000 ? { name: 'Elite', needed: 25000 - stats.totalWagered } :
@@ -148,12 +162,15 @@ function Profile({ user, initData, onLanguageChange }) {
   };
 
   return (
-    <div className="profile-page fade-in">
-      <h1 className="page-title">{t('profile.title')}</h1>
+    <div className="profile-page profile-page--assets profile-page--aura fade-in">
+      <div className="profile-page-heading">
+        <img src={UI.profilePageMenu} alt="" className="profile-page-heading-icon" decoding="async" />
+        <h1 className="page-title">{t('profile.title')}</h1>
+      </div>
 
       {/* Profile Header */}
-      <div className="profile-header glass-card">
-        <div className="profile-avatar-wrapper">
+      <div className="profile-header profile-header--assets glass-card">
+        <div className="profile-avatar-wrapper profile-avatar-wrapper--assets">
           {user?.photo_url ? (
             <img src={user.photo_url} alt={user.first_name} className="profile-avatar" />
           ) : (
@@ -161,8 +178,19 @@ function Profile({ user, initData, onLanguageChange }) {
               {user?.first_name?.[0] || 'U'}
             </div>
           )}
-          <div className="profile-badge" style={{ borderColor: playerStatus.color }}>
-            <span className="rank-icon">{playerStatus.icon}</span>
+          <img
+            src={avatarHaloByProgress(stats.totalWagered)}
+            alt=""
+            className={`profile-avatar-halo profile-avatar-halo--t${avatarHaloTier(stats.totalWagered)}`}
+            decoding="async"
+          />
+          <div className="profile-badge profile-badge--rank" style={{ borderColor: playerStatus.color }}>
+            <img
+              src={rankStarAsset(displayRankLevel)}
+              alt=""
+              className="rank-star-img"
+              decoding="async"
+            />
             <span className="rank-name">{playerStatus.name}</span>
           </div>
         </div>
@@ -176,23 +204,29 @@ function Profile({ user, initData, onLanguageChange }) {
       </div>
 
       {/* Tabs */}
-      <div className="profile-tabs">
+      <div className="profile-tabs profile-tabs--assets">
         <button 
+          type="button"
           className={`profile-tab ${activeTab === 'stats' ? 'active' : ''}`}
           onClick={() => setActiveTab('stats')}
         >
+          <img src={UI.iconDataPlays} alt="" className="profile-tab-icon" decoding="async" />
           {t('profile.stats')}
         </button>
         <button 
+          type="button"
           className={`profile-tab ${activeTab === 'settings' ? 'active' : ''}`}
           onClick={() => setActiveTab('settings')}
         >
+          <img src={UI.profilePageMenu} alt="" className="profile-tab-icon" decoding="async" />
           {t('profile.settings')}
         </button>
         <button 
+          type="button"
           className={`profile-tab ${activeTab === 'privacy' ? 'active' : ''}`}
           onClick={() => setActiveTab('privacy')}
         >
+          <img src={UI.iconLock} alt="" className="profile-tab-icon" decoding="async" />
           {t('profile.privacy')}
         </button>
       </div>
@@ -203,23 +237,23 @@ function Profile({ user, initData, onLanguageChange }) {
           <div className="stats-section">
             <h2 className="settings-title">{t('profile.stats')}</h2>
             <div className="stats-grid">
-              <div className="stat-card glass-card">
-                <div className="stat-icon">🎮</div>
+              <div className="stat-card stat-card--assets glass-card">
+                <div className="stat-icon stat-icon--asset"><img src={UI.iconColorgame} alt="" decoding="async" /></div>
                 <div className="stat-value">{stats.totalGames}</div>
                 <div className="stat-label">{t('profile.stats')}</div>
               </div>
-              <div className="stat-card glass-card">
-                <div className="stat-icon">🏆</div>
+              <div className="stat-card stat-card--assets glass-card">
+                <div className="stat-icon stat-icon--asset"><img src={UI.iconChampion} alt="" decoding="async" /></div>
                 <div className="stat-value">{stats.totalWins}</div>
                 <div className="stat-label">Виграшів</div>
               </div>
-              <div className="stat-card glass-card">
-                <div className="stat-icon">💰</div>
+              <div className="stat-card stat-card--assets glass-card">
+                <div className="stat-icon stat-icon--asset"><img src={UI.chipIcon} alt="" decoding="async" /></div>
                 <div className="stat-value">{stats.totalWagered.toFixed(2)}</div>
                 <div className="stat-label">Поставлено</div>
               </div>
-              <div className="stat-card glass-card">
-                <div className="stat-icon">🎁</div>
+              <div className="stat-card stat-card--assets glass-card">
+                <div className="stat-icon stat-icon--asset"><img src={UI.noticeGift} alt="" decoding="async" /></div>
                 <div className="stat-value">{stats.totalWon.toFixed(2)}</div>
                 <div className="stat-label">Виграно</div>
               </div>
@@ -230,8 +264,8 @@ function Profile({ user, initData, onLanguageChange }) {
             <h2 className="settings-title">{t('profile.history')}</h2>
             <div className="history-list glass-card">
               {gameHistory.length === 0 ? (
-                <div className="empty-state">
-                  <div className="empty-icon">🎮</div>
+                <div className="empty-state empty-state--assets">
+                  <img src={UI.missionEmpty} alt="" className="empty-state-img" decoding="async" />
                   <p>{t('profile.empty')}</p>
                 </div>
               ) : (
@@ -240,7 +274,8 @@ function Profile({ user, initData, onLanguageChange }) {
                     <div className="history-header">
                       <div className="history-game">{game.game_type}</div>
                       <div className="history-date">
-                        {new Date(game.created_at).toLocaleString(getLanguage())}
+                        <img src={UI.iconDataTime} alt="" className="history-date-icon" decoding="async" />
+                        <span>{new Date(game.created_at).toLocaleString(getLanguage())}</span>
                       </div>
                     </div>
                     <div className="history-bet">
@@ -262,9 +297,21 @@ function Profile({ user, initData, onLanguageChange }) {
         <div className="settings-section">
           <h2 className="settings-title">{t('profile.settings')}</h2>
           
-          <LanguageSelector onLanguageChange={(lang) => {
+          <LanguageSelector onLanguageChange={async (lang) => {
             setLanguage(lang);
             updateSettingValue('language', lang);
+            
+            // Save language to server
+            if (initData) {
+              try {
+                await api.post('/language', { language: lang }, {
+                  headers: { 'x-telegram-init-data': initData }
+                });
+              } catch (error) {
+                console.error('Failed to save language:', error);
+              }
+            }
+            
             if (onLanguageChange) {
               onLanguageChange(lang);
             }

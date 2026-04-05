@@ -3,6 +3,7 @@ import './Wallet.css';
 import { api } from '../utils/api';
 import { t } from '../utils/i18n';
 import { convertCurrency, formatCurrency, getCurrencySymbol } from '../utils/currency-converter';
+import { UI, TX_ICON, coinMaterial, uiAsset } from '../constants/uiAssets';
 
 function Wallet({ user, initData, onBalanceUpdate }) {
   const [transactions, setTransactions] = useState([]);
@@ -111,16 +112,16 @@ function Wallet({ user, initData, onBalanceUpdate }) {
   };
 
   const currencies = [
-    { id: 'USDT', name: 'USDT', icon: '/materials/icons/usdt.png', emoji: '💵', network: 'TRC-20', type: 'crypto' },
-    { id: 'TON', name: 'TON', icon: '/materials/icons/ton.png', emoji: '⚡', network: 'TON', type: 'crypto' },
-    { id: 'BTC', name: 'BTC', icon: '/materials/icons/btc.png', emoji: '₿', network: 'Bitcoin', type: 'crypto' }
+    { id: 'USDT', name: 'USDT', icon: coinMaterial('usdt.png'), iconAlt: uiAsset('pic_bigchip.png'), emoji: '💵', network: 'TRC-20', type: 'crypto' },
+    { id: 'TON', name: 'TON', icon: coinMaterial('ton.png'), iconAlt: uiAsset('chip_s.png'), emoji: '⚡', network: 'TON', type: 'crypto' },
+    { id: 'BTC', name: 'BTC', icon: coinMaterial('btc.png'), iconAlt: uiAsset('chip_s.png'), emoji: '₿', network: 'Bitcoin', type: 'crypto' }
   ];
 
   const bonusCoins = [
     { 
       id: 'CHANCE', 
       name: 'Chance', 
-      icon: '/materials/icons/chance.png', 
+      icon: coinMaterial('chance.png'), 
       emoji: '🎲', 
       description: 'Дає більший шанс на виграш',
       type: 'bonus',
@@ -129,7 +130,7 @@ function Wallet({ user, initData, onBalanceUpdate }) {
     { 
       id: 'OMEGA', 
       name: 'Omega', 
-      icon: '/materials/icons/Omega.png', 
+      icon: coinMaterial('Omega.png'), 
       emoji: 'Ω', 
       description: 'Примножує бонус',
       type: 'bonus',
@@ -138,7 +139,7 @@ function Wallet({ user, initData, onBalanceUpdate }) {
     { 
       id: 'UNPL', 
       name: 'UNPL', 
-      icon: '/materials/icons/unpl.png', 
+      icon: coinMaterial('unpl.png'), 
       emoji: '🪙', 
       description: 'Внутрішня валюта казино та проектів ARS7',
       type: 'bonus',
@@ -146,64 +147,66 @@ function Wallet({ user, initData, onBalanceUpdate }) {
     }
   ];
 
-  return (
-    <div className="wallet-page fade-in">
-      <h1 className="page-title">💰 {t('wallet.title')}</h1>
+  const txIconFor = (tx) => {
+    if (tx.type === 'deposit' || tx.type === 'admin_bonus' || tx.type === 'daily_bonus') return TX_ICON.in;
+    if (tx.type === 'withdraw') return TX_ICON.out;
+    if (tx.type === 'game_win') return TX_ICON.gift;
+    if (tx.type === 'game_bet') return TX_ICON.game;
+    return TX_ICON.default;
+  };
 
-      {/* Balance Card */}
-      <div className="balance-card glass-card">
+  return (
+    <div className="wallet-page wallet-page--assets wallet-page--aura fade-in">
+      <div className="wallet-page-heading">
+        <img src={UI.walletPageHeading} alt="" className="wallet-page-heading-icon" decoding="async" />
+        <h1 className="page-title wallet-page-title">{t('wallet.title')}</h1>
+      </div>
+
+      {/* Balance Card — 3 монети: основний, бонус, тотал */}
+      <div className="balance-card balance-card--assets glass-card">
         <div className="balance-header">
           <span className="balance-label">{t('wallet.balance')}</span>
-          <span className="balance-eye">👁️</span>
+          <img src={UI.maskChip} alt="" className="balance-deco-chip" decoding="async" />
         </div>
-        <div className="balance-main">
-          <span className="balance-value balance-text">
-            {formatCurrency(convertCurrency(user?.balance || 0, 'USDT', selectedCurrency), selectedCurrency)}
-          </span>
-          <span className="balance-currency-icon">
-            <img 
-              src={currencies.find(c => c.id === selectedCurrency)?.icon || '/materials/icons/usdt.png'} 
-              alt={selectedCurrency}
-              onError={(e) => {
-                if (e.target.nextSibling) {
-                  e.target.style.display = 'none';
-                  e.target.nextSibling.style.display = 'inline-block';
-                }
-              }}
-              onLoad={(e) => {
-                e.target.style.display = 'block';
-                if (e.target.nextSibling) {
-                  e.target.nextSibling.style.display = 'none';
-                }
-              }}
-            />
-            <span className="balance-currency-icon-fallback" style={{ display: 'none', fontSize: '24px' }}>
-              {getCurrencySymbol(selectedCurrency)}
+        <div className="balance-three-coins">
+          <div className="coin-row">
+            <img src={coinMaterial('usdt.png')} alt="USDT" className="coin-png" />
+            <span className="coin-label">{t('wallet.mainBalance') || 'Основний'}</span>
+            <span className="coin-value">
+              {formatCurrency(convertCurrency(user?.balance || 0, 'USDT', selectedCurrency), selectedCurrency)}
             </span>
-          </span>
-          <span className="balance-currency">{selectedCurrency}</span>
-        </div>
-        {user?.bonus_balance > 0 && (
-          <div className="bonus-balance">
-            <span className="bonus-label">{t('wallet.bonusBalance')}:</span>
-            <span className="bonus-value">{user.bonus_balance.toFixed(2)} {selectedCurrency}</span>
           </div>
-        )}
+          <div className="coin-row">
+            <img src={coinMaterial('chance.png')} alt="Bonus" className="coin-png" />
+            <span className="coin-label">{t('wallet.bonusBalance') || 'Бонус'}</span>
+            <span className="coin-value">
+              {formatCurrency(convertCurrency(user?.bonus_balance || 0, 'USDT', selectedCurrency), selectedCurrency)}
+            </span>
+          </div>
+          <div className="coin-row coin-row-total">
+            <img src={coinMaterial('usdt.png')} alt="Total" className="coin-png" />
+            <span className="coin-label">{t('wallet.total') || 'Всього'}</span>
+            <span className="coin-value">
+              {formatCurrency(convertCurrency((user?.balance || 0) + (user?.bonus_balance || 0), 'USDT', selectedCurrency), selectedCurrency)}
+            </span>
+          </div>
+        </div>
       </div>
 
       {/* Action Buttons */}
-      <div className="wallet-actions">
-        <button className="btn btn-primary deposit-btn" onClick={handleDeposit}>
-          <span className="btn-icon">+</span>
-          <span>{t('wallet.deposit')}</span>
+      <div className="wallet-actions wallet-actions--assets">
+        <button type="button" className="wallet-action-btn wallet-action-btn--dep" onClick={handleDeposit}>
+          <img src={UI.btnGreen} alt="" className="wallet-action-bg" decoding="async" />
+          <span className="wallet-action-label">{t('wallet.deposit')}</span>
         </button>
-        <button 
-          className="btn btn-secondary withdraw-btn"
+        <button
+          type="button"
+          className="wallet-action-btn wallet-action-btn--wd"
           onClick={handleWithdraw}
           disabled={loading}
         >
-          <span className="btn-icon">→</span>
-          <span>{loading ? t('wallet.processing') : t('wallet.withdraw')}</span>
+          <img src={UI.btnBlue} alt="" className="wallet-action-bg" decoding="async" />
+          <span className="wallet-action-label">{loading ? t('wallet.processing') : t('wallet.withdraw')}</span>
         </button>
       </div>
 
@@ -223,11 +226,18 @@ function Wallet({ user, initData, onBalanceUpdate }) {
                   <img 
                     src={currency.icon} 
                     alt={currency.name}
+                    data-alt-tried="0"
                     onError={(e) => {
-                      if (e.target.nextSibling) {
-                        e.target.style.display = 'none';
-                        e.target.nextSibling.style.display = 'inline-block';
+                      const el = e.target;
+                      const alt = currency.iconAlt;
+                      if (alt && el.dataset.altTried !== '1') {
+                        el.dataset.altTried = '1';
+                        el.src = alt;
+                        return;
                       }
+                      el.style.display = 'none';
+                      const fb = el.nextSibling;
+                      if (fb) fb.style.display = 'inline-block';
                     }}
                     onLoad={(e) => {
                       e.target.style.display = 'block';
@@ -248,8 +258,20 @@ function Wallet({ user, initData, onBalanceUpdate }) {
       </div>
 
       {/* Bonus Coins Section */}
-      <div className="bonus-coins-section glass-card">
-        <h3 className="selector-title">🎁 {t('wallet.bonusCoins')}</h3>
+      <div className="bonus-coins-section bonus-coins-section--assets glass-card">
+        <div className="wallet-section-title-row">
+          <img
+            src={UI.noticeGift}
+            alt=""
+            className="wallet-section-icon"
+            decoding="async"
+            onError={(e) => {
+              e.target.onerror = null;
+              e.target.src = UI.bonusGiftIcon;
+            }}
+          />
+          <h3 className="selector-title">{t('wallet.bonusCoins')}</h3>
+        </div>
         <p className="bonus-coins-description">{t('wallet.bonusCoinsDescription')}</p>
         <div className="bonus-coins-grid">
           {bonusCoins.map((coin) => (
@@ -324,22 +346,22 @@ function Wallet({ user, initData, onBalanceUpdate }) {
       </div>
 
       {/* Transactions History */}
-      <div className="transactions-section">
-            <h2 className="section-title">{t('wallet.transactions')}</h2>
-        <div className="transactions-list glass-card">
+      <div className="transactions-section transactions-section--assets">
+        <div className="wallet-section-title-row">
+          <img src={UI.titleTx} alt="" className="wallet-section-icon wallet-section-icon--wide" decoding="async" />
+          <h2 className="section-title">{t('wallet.transactions')}</h2>
+        </div>
+        <div className="transactions-list transactions-list--assets glass-card">
           {transactions.length === 0 ? (
-            <div className="empty-state">
-              <div className="empty-icon">📋</div>
+            <div className="empty-state empty-state--assets">
+              <img src={UI.missionEmpty} alt="" className="empty-state-img" decoding="async" />
               <p>Немає транзакцій</p>
             </div>
           ) : (
             transactions.map((tx) => (
-              <div key={tx.id} className="transaction-item slide-in">
-                <div className="transaction-icon">
-                  {tx.type === 'deposit' || tx.type === 'admin_bonus' ? '⬇️' : 
-                   tx.type === 'withdraw' ? '⬆️' : 
-                   tx.type === 'daily_bonus' ? '🎁' :
-                   tx.type === 'game_win' ? '🎉' : '🎮'}
+              <div key={tx.id} className="transaction-item transaction-item--assets slide-in">
+                <div className="transaction-icon transaction-icon--asset">
+                  <img src={txIconFor(tx)} alt="" decoding="async" />
                 </div>
                 <div className="transaction-info">
                   <div className="transaction-type">
@@ -363,8 +385,14 @@ function Wallet({ user, initData, onBalanceUpdate }) {
                 <div className={`transaction-amount ${tx.type === 'deposit' || tx.type === 'admin_bonus' || tx.type === 'daily_bonus' || tx.type === 'game_win' ? 'positive' : 'negative'}`}>
                   {(tx.type === 'deposit' || tx.type === 'admin_bonus' || tx.type === 'daily_bonus' || tx.type === 'game_win') ? '+' : '-'}{tx.amount} {tx.currency}
                 </div>
-                <div className={`transaction-status status-${tx.status}`}>
-                  {tx.status === 'completed' ? '✅' : tx.status === 'pending' ? '⏳' : '❌'}
+                <div className={`transaction-status status-${tx.status} transaction-status--asset`}>
+                  {tx.status === 'completed' ? (
+                    <img src={UI.listCheckOn} alt="" decoding="async" />
+                  ) : tx.status === 'pending' ? (
+                    <img src={UI.timeBg} alt="" decoding="async" className="tx-pending-icon" />
+                  ) : (
+                    <img src={UI.btnClose} alt="" decoding="async" className="tx-fail-icon" />
+                  )}
                 </div>
               </div>
             ))

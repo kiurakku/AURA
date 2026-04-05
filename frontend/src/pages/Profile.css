@@ -337,6 +337,9 @@
 }
 
 .history-date {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   font-size: var(--font-small);
   color: var(--text-secondary);
 }
@@ -505,4 +508,121 @@
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+}
+
+.profile-page-heading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.profile-page-heading-icon {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+}
+
+.profile-header--assets {
+  background-image: linear-gradient(180deg, rgba(20, 62, 48, 0.4), rgba(8, 30, 22, 0.8)),
+    url('/materials/assets/bg_player.png') !important;
+  background-size: 100% 100%, cover !important;
+}
+
+.profile-avatar-wrapper--assets {
+  background: transparent;
+  box-shadow: none;
+  padding: 0;
+}
+
+.profile-avatar-halo {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  object-fit: contain;
+}
+
+.profile-avatar-halo--t0 {
+  width: calc(100% + 24px);
+  height: calc(100% + 24px);
+  opacity: 0.95;
+}
+
+.profile-avatar-halo--t1 {
+  width: calc(100% + 28px);
+  height: calc(100% + 28px);
+  opacity: 0.98;
+}
+
+.profile-avatar-halo--t2 {
+  width: calc(100% + 32px);
+  height: calc(100% + 32px);
+  opacity: 1;
+}
+
+.profile-avatar-halo--t3 {
+  width: calc(100% + 36px);
+  height: calc(100% + 36px);
+  opacity: 1;
+  filter: drop-shadow(0 0 10px rgba(116, 198, 157, 0.45));
+}
+
+.profile-avatar-halo--t4 {
+  width: calc(100% + 40px);
+  height: calc(100% + 40px);
+  opacity: 1;
+  filter: drop-shadow(0 0 14px rgba(36, 87, 197, 0.4));
+}
+
+.profile-badge--rank {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 10px 4px 6px;
+}
+
+.rank-star-img {
+  width: auto;
+  height: 36px;
+  max-width: 120px;
+  object-fit: contain;
+  display: block;
+}
+
+.history-date-icon {
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
+  flex-shrink: 0;
+  opacity: 0.85;
+}
+
+.profile-tabs--assets .profile-tab {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.profile-tab-icon {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.stat-card--assets .stat-icon--asset img {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+}
+
+.profile-page--assets .empty-state-img {
+  width: 72px;
+  height: 72px;
+  object-fit: contain;
+  margin-bottom: 8px;
 }

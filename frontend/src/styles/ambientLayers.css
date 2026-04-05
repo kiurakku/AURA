@@ -1,0 +1,81 @@
+/**
+ * Декоративні шари з /materials/assets (легкі анімації для лобі / сторінок).
+ */
+@keyframes ambient-drift {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+    opacity: 0.5;
+  }
+  50% {
+    transform: translate3d(-2%, 1%, 0) scale(1.03);
+    opacity: 0.65;
+  }
+}
+
+@keyframes ambient-pulse {
+  0%,
+  100% {
+    opacity: 0.12;
+  }
+  50% {
+    opacity: 0.22;
+  }
+}
+
+.page-ambient {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+
+.page-ambient__layer {
+  position: absolute;
+  inset: -8%;
+  background-repeat: no-repeat;
+  background-position: center;
+  opacity: 0.14;
+}
+
+.page-ambient__layer--dots {
+  background-image: url('/materials/assets/bg_dot_light.png');
+  background-size: 380px;
+  animation: ambient-drift 28s ease-in-out infinite;
+}
+
+.page-ambient__layer--fx {
+  background-image: url('/materials/assets/fx_dotlight.png');
+  background-size: 420px;
+  animation: ambient-drift 38s ease-in-out infinite reverse;
+  opacity: 0.1;
+}
+
+.page-ambient__layer--glow {
+  background-image: radial-gradient(
+    ellipse 80% 50% at 50% -10%,
+    rgba(36, 87, 197, 0.2),
+    transparent 55%
+  );
+  animation: ambient-pulse 12s ease-in-out infinite;
+  inset: 0;
+}
+
+/* Контент сторінки над шарами */
+.home--aura,
+.games-page--aura,
+.wallet-page--aura,
+.profile-page--aura,
+.referral-page--aura,
+.online-games-page--assets {
+  position: relative;
+  z-index: 1;
+}
+
+@media (min-width: 900px) {
+  .games-page--aura .games-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 22px;
+  }
+}

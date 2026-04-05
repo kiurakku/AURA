@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import './Referral.css';
 import { api } from '../utils/api';
+import { UI } from '../constants/uiAssets';
 
 function Referral({ user, initData }) {
   const [referralInfo, setReferralInfo] = useState(null);
@@ -44,11 +45,15 @@ function Referral({ user, initData }) {
   };
 
   return (
-    <div className="referral-page fade-in">
-      <h1 className="page-title">👥 Реферальна програма</h1>
+    <div className="referral-page referral-page--assets referral-page--aura fade-in">
+      <div className="referral-page-heading">
+        <img src={UI.giftIcon} alt="" className="referral-heading-icon" decoding="async" />
+        <h1 className="page-title">Реферальна програма</h1>
+      </div>
 
       {/* Hero Section */}
-      <div className="referral-hero glass-card">
+      <div className="referral-hero referral-hero--assets glass-card">
+        <img src={UI.referralRibbon} alt="" className="referral-ribbon" decoding="async" />
         <h2>Заробляйте разом з друзями!</h2>
         <p className="referral-description">
           Запрошуйте друзів і отримуйте бонус за кожного активного реферала. 
@@ -92,10 +97,12 @@ function Referral({ user, initData }) {
               </button>
             </div>
             <button 
-              className="btn btn-primary invite-button"
+              type="button"
+              className="btn btn-primary invite-button invite-button--assets"
               onClick={inviteFriends}
             >
-              📱 Запросити друзів
+              <img src={UI.btnShare} alt="" className="invite-button-icon" decoding="async" />
+              Запросити друзів
             </button>
           </div>
         </>

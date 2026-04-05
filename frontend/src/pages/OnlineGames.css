@@ -144,6 +144,32 @@
   border-color: var(--accent-purple-start);
 }
 
+.online-game-card--assets::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: var(--og-card-bg);
+  background-size: cover;
+  background-position: center;
+  opacity: 0.22;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.online-games-heading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.online-games-heading-icon {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+}
+
 .game-icon-large {
   font-size: 64px;
   margin-bottom: 16px;
@@ -151,6 +177,64 @@
   z-index: 1;
   filter: drop-shadow(0 0 15px rgba(138, 43, 226, 0.6));
   animation: float 3s ease-in-out infinite;
+}
+
+.game-icon-large--asset {
+  font-size: 0;
+  line-height: 0;
+}
+
+.game-icon-large--asset img {
+  width: 64px;
+  height: 64px;
+  object-fit: contain;
+  display: block;
+  margin: 0 auto;
+}
+
+.bot-game-notice-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.bot-game-notice-icon {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+}
+
+.room-title-with-icon {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.room-title-icon {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+}
+
+.room-detail {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.room-detail-icon {
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
+  opacity: 0.9;
+}
+
+.info-item-icon {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+  flex-shrink: 0;
 }
 
 .game-name {
@@ -181,9 +265,15 @@
 
 .info-item {
   display: flex;
+  align-items: center;
   justify-content: space-between;
+  gap: 8px;
   font-size: var(--font-small);
   color: var(--text-secondary);
+}
+
+.info-item--with-icon {
+  justify-content: flex-start;
 }
 
 .create-room-btn {

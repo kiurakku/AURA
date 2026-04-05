@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import './DiceGame.css';
+import '../../styles/gameAssetsChrome.css';
 import { api } from '../../utils/api';
-import { shareWin } from '../../utils/shareWin';
+import { UI, gameLobbyTheme, gameListIcon } from '../../constants/uiAssets';
+import { t } from '../../utils/i18n';
 
 function DiceGame({ initData, onBack, onBalanceUpdate, botMode = false }) {
   const [betAmount, setBetAmount] = useState(1.0);
@@ -20,12 +22,12 @@ function DiceGame({ initData, onBack, onBalanceUpdate, botMode = false }) {
     setTimeout(async () => {
       try {
         if (!initData && !botMode) {
-          alert('Помилка авторизації');
+          alert(t('games.authError'));
           setIsRolling(false);
           return;
         }
         
-        const endpoint = botMode ? '/api/games/dice/bot' : '/api/games/dice';
+        const endpoint = botMode ? '/games/dice/bot' : '/games/dice';
         const response = await api.post(endpoint, {
           bet_amount: botMode ? 0 : betAmount,
           prediction,
@@ -40,14 +42,10 @@ function DiceGame({ initData, onBack, onBalanceUpdate, botMode = false }) {
         if (data.error === 'Insufficient balance' || response.status === 400) {
           setIsRolling(false);
           if (window.Telegram?.WebApp) {
-            window.Telegram.WebApp.showAlert(
-              'Недостатньо коштів на балансі!\n\n' +
-              'Мінімальна ставка: 0.1 USDT\n' +
-              'Поповніть баланс, щоб продовжити гру.'
-            );
+            window.Telegram.WebApp.showAlert(t('games.insufficientBalance'));
             window.dispatchEvent(new CustomEvent('navigate', { detail: 'wallet' }));
           } else {
-            alert('Недостатньо коштів на балансі! Мінімальна ставка: 0.1 USDT');
+            alert(t('games.insufficientBalance'));
           }
           return;
         }
@@ -59,13 +57,18 @@ function DiceGame({ initData, onBack, onBalanceUpdate, botMode = false }) {
         }
 
         if (botMode) {
-          const botWon = data.bot_won ? 'виграв' : 'програв';
-          alert(`🤖 Результат: ${data.result}. Ви ${data.won ? 'виграли' : 'програли'}, бот ${botWon}. (Гра безкоштовна)`);
+          alert(
+            t('games.diceBotLine', {
+              result: data.result,
+              youStatus: data.won ? t('games.wonShort') : t('games.lostShort'),
+              botStatus: data.bot_won ? t('games.wonShort') : t('games.lostShort'),
+            })
+          );
         } else {
           if (data.won) {
-            alert(`Ви виграли ${data.win_amount.toFixed(2)} USDT!`);
+            alert(t('games.diceWon', { amount: data.win_amount.toFixed(2) }));
           } else {
-            alert(`Ви програли. Результат: ${data.result}`);
+            alert(t('games.diceLost', { result: data.result }));
           }
         }
       } catch (error) {
@@ -75,60 +78,89 @@ function DiceGame({ initData, onBack, onBalanceUpdate, botMode = false }) {
         // Check for insufficient balance
         if (error.response?.status === 400 && error.response?.data?.error === 'Insufficient balance') {
           if (window.Telegram?.WebApp) {
-            window.Telegram.WebApp.showAlert(
-              'Недостатньо коштів на балансі!\n\n' +
-              'Мінімальна ставка: 0.1 USDT\n' +
-              'Поповніть баланс, щоб продовжити гру.'
-            );
+            window.Telegram.WebApp.showAlert(t('games.insufficientBalance'));
             window.dispatchEvent(new CustomEvent('navigate', { detail: 'wallet' }));
           } else {
-            alert('Недостатньо коштів на балансі! Мінімальна ставка: 0.1 USDT');
+            alert(t('games.insufficientBalance'));
           }
         } else {
-          alert(error.response?.data?.error || 'Помилка гри');
+          alert(error.response?.data?.error || t('games.gameError'));
         }
       }
     }, 1500);
   };
 
+  const theme = gameLobbyTheme('dice');
+  const panelStyle = {
+    '--game-bg-img': `url(${theme.bodyBg})`,
+    '--game-lobby-top': `url(${theme.topBar})`,
+    '--game-frame-img': `url(${theme.frame})`,
+    '--game-table-img': `url(${theme.table})`,
+    '--asset-btn-green': `url(${UI.btnGreen})`,
+    '--asset-btn-green-active': `url(${UI.btnGreenActive})`,
+    '--asset-btn-blue': `url(${UI.btnBlue})`,
+    '--asset-btn-yellow': `url(${UI.btnYellow})`,
+    '--asset-btn-gray': `url(${UI.btnGray})`,
+  };
+
   return (
-    <div className="dice-game">
-      <button className="back-btn" onClick={onBack}>← Назад</button>
-      
-      <div className="dice-container glass-card">
+    <div className="dice-game game-screen--assets" style={panelStyle}>
+      <button type="button" className="game-back-asset" onClick={onBack} aria-label={t('games.backAria')}>
+        <img src={UI.back} alt="" decoding="async" />
+      </button>
+
+      <div className="game-lobby-strip" aria-hidden />
+      <div className="game-chip-deco-row" aria-hidden>
+        <img src={theme.chipL} alt="" decoding="async" />
+        <img src={theme.chipR} alt="" decoding="async" />
+      </div>
+
+      <div className="dice-container game-panel-asset game-panel-asset--compact">
+        <div className="game-title-row">
+          <img src={gameListIcon('dice')} alt="" decoding="async" />
+          <h2>{t('games.diceTitle')}</h2>
+        </div>
         <div className="dice-display">
           {isRolling ? (
-            <div className="dice-rolling">🎲</div>
+            <div className="dice-rolling dice-rolling--asset">
+              <img src={UI.diceFace} alt="" className="dice-spin-img" />
+            </div>
           ) : result ? (
             <div className={`dice-result ${result.won ? 'won' : 'lost'}`}>
-              <div className="dice-value">{result.result}</div>
-              <div className="dice-status">{result.won ? 'Виграш!' : 'Програш'}</div>
+              <div className="dice-value dice-value--framed">{result.result}</div>
+              <div className="dice-status">
+                {result.won ? t('games.diceWinStatus') : t('games.diceLoseStatus')}
+              </div>
             </div>
           ) : (
-            <div className="dice-ready">🎲</div>
+            <div className="dice-ready dice-ready--asset">
+              <img src={UI.diceFace} alt="" decoding="async" />
+            </div>
           )}
         </div>
 
         <div className="dice-controls">
           <div className="prediction-selector">
             <button
-              className={`prediction-btn ${prediction === 'over' ? 'active' : ''}`}
+              type="button"
+              className={`prediction-btn prediction-btn--asset ${prediction === 'over' ? 'active' : ''}`}
               onClick={() => setPrediction('over')}
               disabled={isRolling}
             >
-              Більше
+              {t('games.diceOver')}
             </button>
             <button
-              className={`prediction-btn ${prediction === 'under' ? 'active' : ''}`}
+              type="button"
+              className={`prediction-btn prediction-btn--asset ${prediction === 'under' ? 'active' : ''}`}
               onClick={() => setPrediction('under')}
               disabled={isRolling}
             >
-              Менше
+              {t('games.diceUnder')}
             </button>
           </div>
 
           <div className="target-selector">
-            <label>Цільове число: {target}</label>
+            <label>{t('games.diceTarget', { value: target })}</label>
             <input
               type="range"
               min="1"
@@ -142,7 +174,7 @@ function DiceGame({ initData, onBack, onBalanceUpdate, botMode = false }) {
           </div>
 
           <div className="bet-input-group">
-            <label>Сума ставки</label>
+            <label>{t('games.betAmount')}</label>
             <input
               type="number"
               className="input"
@@ -155,30 +187,34 @@ function DiceGame({ initData, onBack, onBalanceUpdate, botMode = false }) {
           </div>
 
           <div className="quick-bets">
-            <button 
-              className="quick-bet-btn"
+            <button
+              type="button"
+              className="asset-quick"
               onClick={() => setBetAmount(1.0)}
               disabled={isRolling}
             >1 USDT</button>
-            <button 
-              className="quick-bet-btn"
+            <button
+              type="button"
+              className="asset-quick"
               onClick={() => setBetAmount(5.0)}
               disabled={isRolling}
             >5 USDT</button>
-            <button 
-              className="quick-bet-btn"
+            <button
+              type="button"
+              className="asset-quick"
               onClick={() => setBetAmount(10.0)}
               disabled={isRolling}
             >10 USDT</button>
           </div>
         </div>
 
-        <button 
-          className="btn btn-primary roll-btn" 
+        <button
+          type="button"
+          className="asset-btn asset-btn--primary roll-btn"
           onClick={rollDice}
           disabled={isRolling}
         >
-          {isRolling ? 'Кидок...' : 'Кинути кубик'}
+          {isRolling ? t('games.diceRolling') : t('games.diceRoll')}
         </button>
       </div>
     </div>

@@ -97,6 +97,50 @@
   font-weight: 600;
 }
 
+/* 3 монети: основний, бонус, тотал */
+.balance-three-coins {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  position: relative;
+  z-index: 1;
+}
+
+.coin-row {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 12px 8px;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.coin-row-total {
+  background: rgba(138, 43, 226, 0.15);
+  border-color: rgba(138, 43, 226, 0.3);
+}
+
+.coin-png {
+  width: 36px;
+  height: 36px;
+  object-fit: contain;
+}
+
+.coin-label {
+  font-size: 11px;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.coin-value {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
 .bonus-balance {
   display: flex;
   align-items: center;
@@ -500,4 +544,144 @@
   font-size: var(--font-small);
   font-weight: 600;
   color: var(--accent-cyan-start);
+}
+
+/* Асети з /materials/assets */
+.wallet-page-heading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.wallet-page-heading-icon {
+  width: 44px;
+  height: 44px;
+  object-fit: contain;
+  filter: drop-shadow(0 0 10px rgba(116, 198, 157, 0.4));
+}
+
+.wallet-page-title {
+  margin: 0 !important;
+}
+
+.balance-card--assets {
+  background-image: linear-gradient(165deg, rgba(24, 70, 52, 0.45), rgba(8, 32, 24, 0.85)),
+    url('/materials/assets/bigchip_bg.png') !important;
+  background-size: 100% 100%, cover !important;
+  background-position: center, center !important;
+}
+
+.balance-deco-chip {
+  width: 36px;
+  height: 36px;
+  object-fit: contain;
+  opacity: 0.9;
+}
+
+.wallet-section-title-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.wallet-section-icon {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+}
+
+.wallet-section-icon--wide {
+  width: auto;
+  height: 28px;
+  max-width: 160px;
+  object-fit: contain;
+}
+
+.wallet-actions--assets {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.wallet-action-btn {
+  position: relative;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  min-height: 52px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.wallet-action-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.wallet-action-bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: fill;
+}
+
+.wallet-action-label {
+  position: relative;
+  z-index: 1;
+  font-size: 14px;
+  font-weight: 800;
+  color: #f4faf6;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.65);
+  padding: 0 8px;
+  text-align: center;
+}
+
+.bonus-coins-section--assets {
+  background-image: linear-gradient(180deg, rgba(18, 58, 44, 0.35), rgba(8, 28, 22, 0.75)),
+    url('/materials/assets/mission_itembk.png') !important;
+  background-size: 100% 100%, 100% 100% !important;
+}
+
+.transactions-list--assets .transaction-item--assets {
+  border-bottom: 1px solid rgba(116, 198, 157, 0.2);
+}
+
+.transaction-icon--asset {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.transaction-icon--asset img {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+}
+
+.transaction-status--asset img {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+}
+
+.tx-pending-icon,
+.tx-fail-icon {
+  opacity: 0.85;
+}
+
+.empty-state--assets .empty-state-img {
+  width: 72px;
+  height: 72px;
+  object-fit: contain;
+  margin-bottom: 8px;
+  opacity: 0.85;
 }

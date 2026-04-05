@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import './Tournaments.css';
 import { api } from '../utils/api';
+import { UI } from '../constants/uiAssets';
 
 function Tournaments({ user, initData }) {
   const [tournaments, setTournaments] = useState([]);
@@ -66,8 +67,12 @@ function Tournaments({ user, initData }) {
   };
 
   return (
-    <div className="tournaments-page fade-in">
-      <h1 className="page-title">🏆 Турніри</h1>
+    <div className="tournaments-page tournaments-page--assets fade-in">
+      <div className="tournaments-heading">
+        <img src={UI.mttBanner} alt="" className="tournaments-banner-deco" decoding="async" />
+        <img src={UI.mttLogo} alt="" className="tournaments-logo" decoding="async" />
+        <h1 className="page-title">Турніри</h1>
+      </div>
 
       <div className="tournaments-list">
         {tournaments.map((tournament) => (

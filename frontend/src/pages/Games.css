@@ -13,6 +13,22 @@
   background-clip: text;
 }
 
+.page-title--with-asset {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.page-title-icon {
+  width: 36px;
+  height: 36px;
+  object-fit: contain;
+  flex-shrink: 0;
+  filter: drop-shadow(0 0 10px rgba(36, 87, 197, 0.45));
+}
+
 /* Пошук */
 .games-search {
   display: flex;
@@ -28,12 +44,15 @@
   align-items: center;
 }
 
-.search-icon {
+.search-icon-img {
   position: absolute;
-  left: 16px;
-  font-size: 18px;
+  left: 14px;
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
   z-index: 1;
-  color: var(--text-secondary);
+  opacity: 0.65;
+  pointer-events: none;
 }
 
 .search-input {
@@ -70,6 +89,29 @@
 .search-clear:hover {
   background: var(--bg-primary);
   color: var(--text-primary);
+}
+
+.search-clear--asset {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px;
+}
+
+.search-clear--asset img {
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
+}
+
+.filter-toggle--asset {
+  gap: 10px;
+}
+
+.filter-toggle-icon {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
 }
 
 .filter-toggle {
@@ -347,6 +389,13 @@
   font-size: 20px;
 }
 
+.tab-icon-img {
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
 .tab-name {
   font-size: var(--font-body);
 }
@@ -431,6 +480,57 @@
   overflow: hidden;
 }
 
+/* Інакше фон glass-card перекриває текстури */
+.game-card.game-card--assets.glass-card {
+  background: transparent;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+/* Текстури на всю картку: зверху градієнт, тема гри, база card_type */
+.game-card--assets::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 24px;
+  z-index: 0;
+  pointer-events: none;
+  background-image: linear-gradient(
+      180deg,
+      rgba(6, 10, 22, 0.74),
+      rgba(4, 8, 18, 0.9)
+    ),
+    var(--game-card-bg), var(--game-card-type);
+  background-size: cover, cover, cover;
+  background-position: center, center, center;
+  background-repeat: no-repeat;
+}
+
+.game-card.featured.game-card--assets::after {
+  inset: 2px;
+  border-radius: 22px;
+}
+
+.game-card--assets .game-card-content {
+  background: transparent !important;
+}
+
+.game-card.featured .game-card-content {
+  background: transparent !important;
+}
+
+.game-card--assets .game-card-content > * {
+  position: relative;
+  z-index: 1;
+}
+
+.favorite-btn-img {
+  width: 26px;
+  height: 26px;
+  object-fit: contain;
+  display: block;
+}
+
 .game-card-header {
   display: flex;
   justify-content: space-between;
@@ -452,9 +552,25 @@
   transition: transform 0.3s;
 }
 
+.game-icon--asset {
+  font-size: 0;
+  line-height: 0;
+}
+
+.game-icon--asset img {
+  width: 56px;
+  height: 56px;
+  object-fit: contain;
+  display: block;
+}
+
 .game-card:hover .game-icon {
   transform: scale(1.1) rotate(5deg);
   filter: drop-shadow(0 0 25px rgba(138, 43, 226, 0.9));
+}
+
+.game-card:hover .game-icon--asset img {
+  transform: scale(1.08);
 }
 
 .favorite-btn {
@@ -490,6 +606,22 @@
   animation: pulse-glow 2s ease-in-out infinite;
 }
 
+.featured-badge--asset {
+  font-size: 0;
+  line-height: 0;
+  background: rgba(0, 8, 20, 0.45);
+  border-radius: 10px;
+  padding: 2px;
+  border: 1px solid rgba(36, 87, 197, 0.35);
+}
+
+.featured-badge--asset img {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+  display: block;
+}
+
 .new-badge {
   position: absolute;
   top: -8px;
@@ -518,6 +650,19 @@
   align-items: center;
   justify-content: center;
   box-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+}
+
+.multiplayer-badge--asset {
+  font-size: 0;
+  padding: 4px;
+  background: rgba(0, 8, 20, 0.55);
+  border: 1px solid rgba(116, 196, 16, 0.35);
+}
+
+.multiplayer-badge--asset img {
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
 }
 
 .game-name {
@@ -623,6 +768,28 @@
 .empty-text {
   font-size: var(--font-body);
   color: var(--text-secondary);
+}
+
+.empty-games--assets .empty-games-asset {
+  width: 88px;
+  height: 88px;
+  object-fit: contain;
+  margin-bottom: 12px;
+  opacity: 0.85;
+  filter: drop-shadow(0 0 12px rgba(82, 183, 136, 0.35));
+}
+
+.games-page--aura .page-title {
+  filter: drop-shadow(0 2px 12px rgba(82, 183, 136, 0.25));
+}
+
+.games-page--aura .search-input:focus {
+  border-color: var(--accent-cyan-start);
+  box-shadow: 0 0 0 3px rgba(82, 183, 136, 0.15);
+}
+
+.games-page--aura .game-card {
+  border-color: rgba(116, 198, 157, 0.28);
 }
 
 /* Responsive */

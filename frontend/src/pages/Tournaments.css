@@ -207,3 +207,32 @@
   font-size: var(--font-body);
   font-weight: 700;
 }
+
+.tournaments-heading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.tournaments-banner-deco {
+  width: 100%;
+  max-width: 320px;
+  height: auto;
+  object-fit: contain;
+  opacity: 0.9;
+}
+
+.tournaments-logo {
+  width: 56px;
+  height: 56px;
+  object-fit: contain;
+  filter: drop-shadow(0 0 12px rgba(116, 198, 157, 0.35));
+}
+
+.tournaments-page--assets .tournament-card {
+  background-image: linear-gradient(165deg, rgba(18, 58, 44, 0.25), rgba(8, 28, 22, 0.65)),
+    url('/materials/assets/mission_itembk.png');
+  background-size: 100% 100%, 100% 100%;
+}

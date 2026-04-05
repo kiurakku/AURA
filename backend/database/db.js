@@ -80,8 +80,14 @@ export async function getDatabase() {
             }
           }
           if (sql.includes('UPDATE users') && sql.includes('SET balance')) {
-            const [balance, telegram_id] = paramsArray;
-            db.users.update({ telegram_id }, { balance });
+            // UPDATE users SET balance = ?, bonus_balance = ? WHERE telegram_id = ?
+            if (paramsArray.length === 3 && sql.includes('bonus_balance')) {
+              const [balance, bonus_balance, telegram_id] = paramsArray;
+              db.users.update({ telegram_id }, { balance, bonus_balance });
+            } else {
+              const [balance, telegram_id] = paramsArray;
+              db.users.update({ telegram_id }, { balance });
+            }
           }
           if (sql.includes('UPDATE users') && sql.includes('SET total_wagered')) {
             const [total_wagered, total_xp, rank_id, rank_name, telegram_id] = paramsArray;
@@ -112,6 +118,10 @@ export async function getDatabase() {
           if (sql.includes('UPDATE users') && sql.includes('SET privacy_settings')) {
             const [privacy_settings, telegram_id] = paramsArray;
             db.users.update({ telegram_id }, { privacy_settings });
+          }
+          if (sql.includes('UPDATE users') && sql.includes('SET language')) {
+            const [language, telegram_id] = paramsArray;
+            db.users.update({ telegram_id }, { language });
           }
           if (sql.includes('INSERT INTO transactions')) {
             // Check if currency is provided (6 params) or not (5 params)

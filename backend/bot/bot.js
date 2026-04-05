@@ -1,6 +1,8 @@
 import TelegramBot from 'node-telegram-bot-api';
 import crypto from 'crypto';
 import { getDatabase } from '../database/db.js';
+import { getUserLanguage } from './getUserLanguage.js';
+import { getBotMessage } from './messages.js';
 import dotenv from 'dotenv';
 
 dotenv.config();
@@ -120,8 +122,8 @@ export async function initBot() {
     `).get(user.id);
     const gamesCount = totalGames?.count || 0;
 
-    // Build welcome message based on user language
-    const lang = msg.from.language_code || 'uk';
+    // Build welcome message based on user language (from database or Telegram)
+    const lang = user.language || msg.from.language_code || 'uk';
     const messages = {
       uk: {
         welcome: '🎰 *Ласкаво просимо до AURA Casino!*',
@@ -305,30 +307,47 @@ export async function initBot() {
 
     const user = db.prepare('SELECT * FROM users WHERE telegram_id = ?').get(userId);
     if (!user) {
-      return bot.sendMessage(chatId, 'Спочатку виконайте /start');
+      const lang = getUserLanguage(db, userId, msg.from.language_code);
+      return bot.sendMessage(chatId, getBotMessage(lang, 'startRequired'));
     }
+
+    const lang = getUserLanguage(db, userId, msg.from.language_code);
+    const mainBalance = (user.balance || 0).toFixed(2);
+    const bonusBalance = (user.bonus_balance || 0).toFixed(2);
+    const totalBalance = ((user.balance || 0) + (user.bonus_balance || 0)).toFixed(2);
+    const rank = user.rank_name || 'Newbie';
+    const wagered = (user.total_wagered || 0).toFixed(2);
 
     const keyboard = {
       inline_keyboard: [[
         {
-          text: '🎰 Відкрити казино',
+          text: getBotMessage(lang, 'openCasino'),
           web_app: { url: webappUrl }
         }
       ]]
     };
 
-    bot.sendMessage(chatId,
-      '💰 *Ваш баланс:*\n\n' +
-      `💵 Основний: ${(user.balance || 0).toFixed(2)} USDT\n` +
-      `🎁 Бонусний: ${(user.bonus_balance || 0).toFixed(2)} USDT\n` +
-      `📊 Загальний: ${((user.balance || 0) + (user.bonus_balance || 0)).toFixed(2)} USDT\n\n` +
-      `🏆 Ранг: ${user.rank_name || 'Newbie'}\n` +
-      `📈 Поставлено: ${(user.total_wagered || 0).toFixed(2)} USDT`,
-      {
+    // Send balance photo with caption
+    const baseUrl = process.env.TELEGRAM_WEBAPP_URL || 'https://auraslots.fly.dev';
+    const photoPath = `${baseUrl}/materials/balance.png`;
+    
+    try {
+      await bot.sendPhoto(chatId, photoPath, {
+        caption: getBotMessage(lang, 'balance', mainBalance, bonusBalance, totalBalance, rank, wagered),
         parse_mode: 'Markdown',
         reply_markup: keyboard
-      }
-    );
+      });
+    } catch (error) {
+      // If photo fails, send text only
+      console.log('⚠️ Failed to send balance photo, sending text only:', error.message);
+      bot.sendMessage(chatId,
+        getBotMessage(lang, 'balance', mainBalance, bonusBalance, totalBalance, rank, wagered),
+        {
+          parse_mode: 'Markdown',
+          reply_markup: keyboard
+        }
+      );
+    }
   });
 
   // Referral command
@@ -338,37 +357,36 @@ export async function initBot() {
 
     const user = db.prepare('SELECT * FROM users WHERE telegram_id = ?').get(userId);
     if (!user) {
-      return bot.sendMessage(chatId, 'Спочатку виконайте /start');
+      const lang = getUserLanguage(db, userId, msg.from.language_code);
+      return bot.sendMessage(chatId, getBotMessage(lang, 'startRequired'));
     }
 
+    const lang = getUserLanguage(db, userId, msg.from.language_code);
     const referralLink = `https://t.me/${bot.options.username || 'aurasfroxbot'}?start=ref_${user.referral_code}`;
-    const referrals = db.prepare('SELECT COUNT(*) as count FROM referrals WHERE referrer_id = ?').get(userId);
+    const referrals = db.prepare('SELECT COUNT(*) as count FROM referrals WHERE referrer_id = ?').get(user.id);
     const referralCount = referrals?.count || 0;
+    const earned = (user.bonus_balance || 0).toFixed(2);
 
     const keyboard = {
       inline_keyboard: [[
         {
-          text: '📋 Скопіювати посилання',
+          text: getBotMessage(lang, 'copyLink'),
           callback_data: `copy_ref_${user.referral_code}`
         },
         {
-          text: '📤 Поділитися',
+          text: getBotMessage(lang, 'share'),
           switch_inline_query: `Приєднуйся до AURA Casino та отримуй бонуси! ${referralLink}`
         }
       ], [
         {
-          text: '🎰 Відкрити казино',
+          text: getBotMessage(lang, 'openCasino'),
           web_app: { url: webappUrl }
         }
       ]]
     };
 
     bot.sendMessage(chatId,
-      '👥 *Реферальна програма*\n\n' +
-      `🔗 Ваше посилання:\n\`${referralLink}\`\n\n` +
-      `👤 Запрошено друзів: ${referralCount}\n` +
-      `💰 Зароблено: ${(user.bonus_balance || 0).toFixed(2)} USDT\n\n` +
-      '💡 За кожного друга, який грає, ви отримуєте бонус!',
+      getBotMessage(lang, 'referral', referralLink, referralCount, earned),
       {
         parse_mode: 'Markdown',
         reply_markup: keyboard
@@ -383,39 +401,51 @@ export async function initBot() {
 
     const user = db.prepare('SELECT * FROM users WHERE telegram_id = ?').get(userId);
     if (!user) {
-      return bot.sendMessage(chatId, 'Спочатку виконайте /start');
+      const lang = getUserLanguage(db, userId, msg.from.language_code);
+      return bot.sendMessage(chatId, getBotMessage(lang, 'startRequired'));
     }
 
+    const lang = getUserLanguage(db, userId, msg.from.language_code);
     const games = db.prepare('SELECT * FROM games WHERE user_id = ?').all(user.id);
     const totalGames = games.length;
     const totalWins = games.filter(g => g.win_amount > 0).length;
     const totalWagered = user.total_wagered || 0;
     const totalWon = games.reduce((sum, g) => sum + (g.win_amount || 0), 0);
     const winRate = totalGames > 0 ? ((totalWins / totalGames) * 100).toFixed(1) : 0;
+    const profit = (totalWon - totalWagered).toFixed(2);
+    const rank = user.rank_name || 'Newbie';
+    const xp = user.total_xp || 0;
 
     const keyboard = {
       inline_keyboard: [[
         {
-          text: '🎰 Грати зараз',
+          text: getBotMessage(lang, 'playNow'),
           web_app: { url: webappUrl }
         }
       ]]
     };
 
-    bot.sendMessage(chatId,
-      '📊 *Ваша статистика:*\n\n' +
-      `🎮 Всього ігор: ${totalGames}\n` +
-      `🏆 Виграшів: ${totalWins} (${winRate}%)\n` +
-      `💰 Поставлено: ${totalWagered.toFixed(2)} USDT\n` +
-      `🎁 Виграно: ${totalWon.toFixed(2)} USDT\n` +
-      `📈 Чистий прибуток: ${(totalWon - totalWagered).toFixed(2)} USDT\n\n` +
-      `🏆 Ранг: ${user.rank_name || 'Newbie'}\n` +
-      `⭐ XP: ${user.total_xp || 0}`,
-      {
+    // Send stats photo with caption
+    const baseUrl = process.env.TELEGRAM_WEBAPP_URL || 'https://auraslots.fly.dev';
+    const photoPath = `${baseUrl}/materials/statistic.png`;
+    
+    try {
+      await bot.sendPhoto(chatId, photoPath, {
+        caption: getBotMessage(lang, 'stats', totalGames, totalWins, winRate, totalWagered.toFixed(2), totalWon.toFixed(2), profit, rank, xp),
         parse_mode: 'Markdown',
         reply_markup: keyboard
-      }
-    );
+      });
+    } catch (error) {
+      // If photo fails, send text only
+      console.log('⚠️ Failed to send stats photo, sending text only:', error.message);
+      bot.sendMessage(chatId,
+        getBotMessage(lang, 'stats', totalGames, totalWins, winRate, totalWagered.toFixed(2), totalWon.toFixed(2), profit, rank, xp),
+        {
+          parse_mode: 'Markdown',
+          reply_markup: keyboard
+        }
+      );
+    }
   });
 
   // Deposit command
@@ -459,25 +489,22 @@ export async function initBot() {
 
     const user = db.prepare('SELECT * FROM users WHERE telegram_id = ?').get(userId);
     if (!user) {
-      return bot.sendMessage(chatId, 'Спочатку виконайте /start');
+      const lang = getUserLanguage(db, userId, msg.from.language_code);
+      return bot.sendMessage(chatId, getBotMessage(lang, 'startRequired'));
     }
 
-    const totalBalance = (user.balance || 0) + (user.bonus_balance || 0);
+    const lang = getUserLanguage(db, userId, msg.from.language_code);
     const keyboard = {
       inline_keyboard: [[
         {
-          text: '💸 Вивести кошти',
+          text: getBotMessage(lang, 'depositButton').replace('Поповнити', 'Вивести'),
           web_app: { url: webappUrl }
         }
       ]]
     };
 
     bot.sendMessage(chatId,
-      '💸 *Виведення коштів*\n\n' +
-      `💰 Доступно для виведення: ${totalBalance.toFixed(2)} USDT\n\n` +
-      'Для виведення коштів відкрийте казино та перейдіть у розділ "Гаманець".\n\n' +
-      'Мінімальна сума виведення: 5 USDT\n' +
-      'Час обробки: від 5 хвилин до 24 годин',
+      getBotMessage(lang, 'withdraw'),
       {
         parse_mode: 'Markdown',
         reply_markup: keyboard
@@ -523,9 +550,11 @@ export async function initBot() {
 
     const user = db.prepare('SELECT * FROM users WHERE telegram_id = ?').get(userId);
     if (!user) {
-      return bot.sendMessage(chatId, 'Спочатку виконайте /start');
+      const lang = getUserLanguage(db, userId, msg.from.language_code);
+      return bot.sendMessage(chatId, getBotMessage(lang, 'startRequired'));
     }
 
+    const lang = getUserLanguage(db, userId, msg.from.language_code);
     const rankIcon = getRankIcon(user.rank_name || 'Newbie');
     const totalWagered = user.total_wagered || 0;
     
@@ -555,24 +584,22 @@ export async function initBot() {
     const keyboard = {
       inline_keyboard: [[
         {
-          text: '🎰 Грати зараз',
+          text: getBotMessage(lang, 'playNow'),
           web_app: { url: webappUrl }
         }
       ]]
     };
 
-    let rankText = `⭐ *Ваш ранг:* ${rankIcon} *${user.rank_name || 'Newbie'}*\n\n`;
-    rankText += `💰 Поставлено: ${totalWagered.toFixed(2)} USDT\n`;
-    rankText += `💎 Кешбек: ${currentRank.cashback}%\n`;
-    rankText += `⭐ XP: ${user.total_xp || 0}\n\n`;
-    
-    if (nextRank) {
-      rankText += `📈 *До наступного рангу:*\n`;
-      rankText += `${nextRank.name} - залишилось ${neededForNext.toFixed(2)} USDT\n`;
-      rankText += `Прогрес: ${progress}%`;
-    } else {
-      rankText += `🏆 Ви досягли максимального рангу!`;
-    }
+    const rankText = getBotMessage(lang, 'rank', 
+      rankIcon, 
+      user.rank_name || 'Newbie', 
+      totalWagered.toFixed(2), 
+      currentRank.cashback, 
+      user.total_xp || 0,
+      nextRank?.name || null,
+      neededForNext.toFixed(2),
+      progress
+    );
 
     bot.sendMessage(chatId, rankText, {
       parse_mode: 'Markdown',
@@ -587,9 +614,12 @@ export async function initBot() {
 
     const user = db.prepare('SELECT * FROM users WHERE telegram_id = ?').get(userId);
     if (!user) {
-      return bot.sendMessage(chatId, 'Спочатку виконайте /start');
+      const lang = getUserLanguage(db, userId, msg.from.language_code);
+      return bot.sendMessage(chatId, getBotMessage(lang, 'startRequired'));
     }
 
+    const lang = getUserLanguage(db, userId, msg.from.language_code);
+    
     // Get top 10 users by total_wagered
     const topUsers = db.prepare(`
       SELECT telegram_id, first_name, username, total_wagered, rank_name, total_xp
@@ -598,16 +628,12 @@ export async function initBot() {
       LIMIT 10
     `).all();
 
-    let leaderboardText = '🏆 *Таблиця лідерів*\n\n';
-    leaderboardText += 'Топ-10 гравців за сумою ставок:\n\n';
-
-    topUsers.forEach((u, index) => {
-      const medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `${index + 1}.`;
-      const rankIcon = getRankIcon(u.rank_name || 'Newbie');
-      const name = u.first_name || u.username || 'Гравець';
-      leaderboardText += `${medal} ${rankIcon} ${name}\n`;
-      leaderboardText += `   💰 ${(u.total_wagered || 0).toFixed(2)} USDT | ⭐ ${u.total_xp || 0} XP\n\n`;
-    });
+    const formattedUsers = topUsers.map((u) => ({
+      rankIcon: getRankIcon(u.rank_name || 'Newbie'),
+      name: u.first_name || u.username || 'Гравець',
+      wagered: (u.total_wagered || 0).toFixed(2),
+      xp: u.total_xp || 0
+    }));
 
     // Find user position
     const userPosition = db.prepare(`
@@ -616,12 +642,12 @@ export async function initBot() {
       WHERE total_wagered > ?
     `).get(user.total_wagered || 0);
 
-    leaderboardText += `\n📍 Ваша позиція: #${userPosition?.position || '?'}`;
+    const leaderboardText = getBotMessage(lang, 'leaderboard', formattedUsers, userPosition?.position || '?');
 
     const keyboard = {
       inline_keyboard: [[
         {
-          text: '🎰 Грати зараз',
+          text: getBotMessage(lang, 'playNow'),
           web_app: { url: webappUrl }
         }
       ]]
@@ -640,9 +666,11 @@ export async function initBot() {
 
     const user = db.prepare('SELECT * FROM users WHERE telegram_id = ?').get(userId);
     if (!user) {
-      return bot.sendMessage(chatId, 'Спочатку виконайте /start');
+      const lang = getUserLanguage(db, userId, msg.from.language_code);
+      return bot.sendMessage(chatId, getBotMessage(lang, 'startRequired'));
     }
 
+    const lang = getUserLanguage(db, userId, msg.from.language_code);
     const transactions = db.prepare(`
       SELECT * FROM transactions 
       WHERE user_id = ? 
@@ -651,17 +679,11 @@ export async function initBot() {
     `).all(user.id);
 
     if (transactions.length === 0) {
-      return bot.sendMessage(chatId,
-        '📜 *Історія транзакцій*\n\n' +
-        'У вас поки немає транзакцій.\n\n' +
-        'Поповніть баланс або почніть грати!',
-        { parse_mode: 'Markdown' }
-      );
+      return bot.sendMessage(chatId, getBotMessage(lang, 'historyEmpty'), { parse_mode: 'Markdown' });
     }
 
-    let historyText = '📜 *Останні транзакції:*\n\n';
-    transactions.forEach((tx, index) => {
-      const date = new Date(tx.created_at).toLocaleDateString('uk-UA', {
+    const formattedTransactions = transactions.map((tx) => {
+      const date = new Date(tx.created_at).toLocaleDateString(lang === 'uk' ? 'uk-UA' : lang === 'ru' ? 'ru-RU' : 'en-US', {
         day: '2-digit',
         month: 'short',
         hour: '2-digit',
@@ -676,13 +698,15 @@ export async function initBot() {
                    tx.type === 'game_bet' ? '🎮 Ставка' : '📝 Інше';
       const status = tx.status === 'completed' ? '✅' : tx.status === 'pending' ? '⏳' : '❌';
       const sign = (tx.type === 'deposit' || tx.type === 'admin_bonus' || tx.type === 'daily_bonus' || tx.type === 'game_win') ? '+' : '-';
-      historyText += `${index + 1}. ${type} ${status}\n   ${sign}${amount} ${tx.currency || 'USDT'}\n   ${date}\n\n`;
+      return { type, status, sign, amount, currency: tx.currency || 'USDT', date };
     });
+
+    const historyText = getBotMessage(lang, 'history', formattedTransactions);
 
     const keyboard = {
       inline_keyboard: [[
         {
-          text: '🎰 Відкрити казино',
+          text: getBotMessage(lang, 'openCasino'),
           web_app: { url: webappUrl }
         }
       ]]
@@ -701,9 +725,11 @@ export async function initBot() {
 
     const user = db.prepare('SELECT * FROM users WHERE telegram_id = ?').get(userId);
     if (!user) {
-      return bot.sendMessage(chatId, 'Спочатку виконайте /start');
+      const lang = getUserLanguage(db, userId, msg.from.language_code);
+      return bot.sendMessage(chatId, getBotMessage(lang, 'startRequired'));
     }
 
+    const lang = getUserLanguage(db, userId, msg.from.language_code);
     const rankIcon = getRankIcon(user.rank_name || 'Newbie');
     const totalWagered = user.total_wagered || 0;
     
@@ -719,24 +745,14 @@ export async function initBot() {
     const keyboard = {
       inline_keyboard: [[
         {
-          text: '🎰 Відкрити казино',
+          text: getBotMessage(lang, 'openCasino'),
           web_app: { url: webappUrl }
         }
       ]]
     };
 
     bot.sendMessage(chatId,
-      `💎 *Кешбек система*\n\n` +
-      `Ваш ранг: ${rankIcon} ${user.rank_name || 'Newbie'}\n` +
-      `Поточна ставка кешбеку: *${cashbackRate}%*\n\n` +
-      `Кешбек нараховується щопонеділка від суми програних коштів за минулий тиждень.\n\n` +
-      `Рівні кешбеку:\n` +
-      `🟤 Newbie - 1%\n` +
-      `⚪ Gambler - 3%\n` +
-      `🟡 High Roller - 5%\n` +
-      `💎 Pro - 7%\n` +
-      `👑 Elite - 10%\n` +
-      `⭐ Aura Legend - 15%`,
+      getBotMessage(lang, 'cashback', rankIcon, user.rank_name || 'Newbie', cashbackRate),
       {
         parse_mode: 'Markdown',
         reply_markup: keyboard
@@ -934,34 +950,61 @@ export async function initBot() {
       const userId = query.from.id;
       const user = db.prepare('SELECT * FROM users WHERE telegram_id = ?').get(userId);
       if (user) {
-        bot.sendMessage(chatId,
-          `💰 *Ваш баланс:*\n\n` +
-          `💵 Основний: *${(user.balance || 0).toFixed(2)} USDT*\n` +
-          `🎁 Бонусний: *${(user.bonus_balance || 0).toFixed(2)} USDT*\n` +
-          `📊 Загальний: *${((user.balance || 0) + (user.bonus_balance || 0)).toFixed(2)} USDT*`,
-          { parse_mode: 'Markdown' }
-        );
+        const lang = getUserLanguage(db, userId, query.from.language_code);
+        const mainBalance = (user.balance || 0).toFixed(2);
+        const bonusBalance = (user.bonus_balance || 0).toFixed(2);
+        const totalBalance = ((user.balance || 0) + (user.bonus_balance || 0)).toFixed(2);
+        const rank = user.rank_name || 'Newbie';
+        const wagered = (user.total_wagered || 0).toFixed(2);
+        
+        const baseUrl = process.env.TELEGRAM_WEBAPP_URL || 'https://auraslots.fly.dev';
+        const photoPath = `${baseUrl}/materials/balance.png`;
+        
+        try {
+          await bot.sendPhoto(chatId, photoPath, {
+            caption: getBotMessage(lang, 'balance', mainBalance, bonusBalance, totalBalance, rank, wagered),
+            parse_mode: 'Markdown'
+          });
+        } catch (error) {
+          // If photo fails, send text only
+          console.log('⚠️ Failed to send balance photo, sending text only:', error.message);
+          bot.sendMessage(chatId,
+            getBotMessage(lang, 'balance', mainBalance, bonusBalance, totalBalance, rank, wagered),
+            { parse_mode: 'Markdown' }
+          );
+        }
       }
     } else if (data === 'show_stats') {
       const userId = query.from.id;
       const user = db.prepare('SELECT * FROM users WHERE telegram_id = ?').get(userId);
       if (user) {
+        const lang = getUserLanguage(db, userId, query.from.language_code);
         const games = db.prepare('SELECT * FROM games WHERE user_id = ?').all(user.id);
         const totalGames = games.length;
         const totalWins = games.filter(g => g.win_amount > 0).length;
+        const totalWagered = user.total_wagered || 0;
         const totalWon = games.reduce((sum, g) => sum + (g.win_amount || 0), 0);
         const winRate = totalGames > 0 ? ((totalWins / totalGames) * 100).toFixed(1) : 0;
+        const profit = (totalWon - totalWagered).toFixed(2);
+        const rank = user.rank_name || 'Newbie';
+        const xp = user.total_xp || 0;
         
-        bot.sendMessage(chatId,
-          `📊 *Ваша статистика:*\n\n` +
-          `🎮 Всього ігор: *${totalGames}*\n` +
-          `🏆 Виграшів: *${totalWins}* (${winRate}%)\n` +
-          `💰 Поставлено: *${(user.total_wagered || 0).toFixed(2)} USDT*\n` +
-          `🎁 Виграно: *${totalWon.toFixed(2)} USDT*\n` +
-          `📈 Чистий прибуток: *${(totalWon - (user.total_wagered || 0)).toFixed(2)} USDT*\n` +
-          `⭐ XP: *${user.total_xp || 0}*`,
-          { parse_mode: 'Markdown' }
-        );
+        const baseUrl = process.env.TELEGRAM_WEBAPP_URL || 'https://auraslots.fly.dev';
+        const photoPath = `${baseUrl}/materials/statistic.png`;
+        
+        try {
+          await bot.sendPhoto(chatId, photoPath, {
+            caption: getBotMessage(lang, 'stats', totalGames, totalWins, winRate, totalWagered.toFixed(2), totalWon.toFixed(2), profit, rank, xp),
+            parse_mode: 'Markdown'
+          });
+        } catch (error) {
+          // If photo fails, send text only
+          console.log('⚠️ Failed to send stats photo, sending text only:', error.message);
+          bot.sendMessage(chatId,
+            getBotMessage(lang, 'stats', totalGames, totalWins, winRate, totalWagered.toFixed(2), totalWon.toFixed(2), profit, rank, xp),
+            { parse_mode: 'Markdown' }
+          );
+        }
       }
     } else if (data === 'show_rank') {
       const userId = query.from.id;
@@ -1008,11 +1051,14 @@ export async function initBot() {
       }
     } else if (data === 'show_settings') {
       const userId = query.from.id;
-      const lang = query.from.language_code || 'uk';
+      const lang = getUserLanguage(db, userId, query.from.language_code);
       const languages = {
         uk: { name: 'Українська', code: 'uk' },
         ru: { name: 'Русский', code: 'ru' },
-        en: { name: 'English', code: 'en' }
+        en: { name: 'English', code: 'en' },
+        zh: { name: '中文', code: 'zh' },
+        de: { name: 'Deutsch', code: 'de' },
+        es: { name: 'Español', code: 'es' }
       };
       
       const keyboard = {
@@ -1023,25 +1069,46 @@ export async function initBot() {
             { text: '🇬🇧 English', callback_data: 'set_lang_en' }
           ],
           [
-            { text: '🎰 Відкрити казино', web_app: { url: webappUrl } }
+            { text: '🇨🇳 中文', callback_data: 'set_lang_zh' },
+            { text: '🇩🇪 Deutsch', callback_data: 'set_lang_de' },
+            { text: '🇪🇸 Español', callback_data: 'set_lang_es' }
+          ],
+          [
+            { text: getBotMessage(lang, 'openCasino'), web_app: { url: webappUrl } }
           ]
         ]
       };
       
       bot.sendMessage(chatId,
-        `⚙️ *Налаштування:*\n\n` +
-        `🌐 Мова інтерфейсу\n` +
-        `Поточна мова: ${languages[lang]?.name || 'Українська'}\n\n` +
-        `Оберіть мову:`,
+        getBotMessage(lang, 'settings') + '\n' +
+        getBotMessage(lang, 'currentLanguage', languages[lang]?.name || 'Українська') + '\n\n' +
+        getBotMessage(lang, 'selectLanguage'),
         { parse_mode: 'Markdown', reply_markup: keyboard }
       );
     } else if (data.startsWith('set_lang_')) {
       const lang = data.replace('set_lang_', '');
-      bot.sendMessage(chatId,
-        `✅ Мову змінено на ${lang === 'uk' ? '🇺🇦 Українська' : lang === 'ru' ? '🇷🇺 Русский' : '🇬🇧 English'}\n\n` +
-        `Мова зберігається в WebApp. Відкрийте казино для застосування.`,
-        { parse_mode: 'Markdown' }
-      );
+      
+      // Save language to database
+      const user = db.prepare('SELECT id FROM users WHERE telegram_id = ?').get(query.from.id);
+      if (user) {
+        db.prepare('UPDATE users SET language = ? WHERE telegram_id = ?').run(lang, query.from.id);
+      }
+      
+      const langNames = {
+        uk: '🇺🇦 Українська',
+        ru: '🇷🇺 Русский',
+        en: '🇬🇧 English',
+        zh: '🇨🇳 中文',
+        de: '🇩🇪 Deutsch',
+        es: '🇪🇸 Español'
+      };
+      
+      const userLang = getUserLanguage(db, query.from.id, query.from.language_code);
+      const langName = langNames[lang] || lang;
+      
+      bot.answerCallbackQuery(query.id, {
+        text: getBotMessage(userLang, 'languageChanged', langName)
+      });
     }
   });
 

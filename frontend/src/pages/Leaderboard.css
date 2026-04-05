@@ -2,6 +2,18 @@
   padding: 20px 0;
 }
 
+.leaderboard-page--club {
+  background-image: var(--club-panel-bg);
+  background-size: min(100%, 720px) auto;
+  background-repeat: no-repeat;
+  background-position: top center;
+}
+
+.leaderboard-list--club {
+  background: rgba(8, 10, 20, 0.55);
+  backdrop-filter: blur(8px);
+}
+
 .period-selector {
   display: flex;
   gap: 12px;
@@ -57,6 +69,14 @@
   border-radius: 16px;
   transition: all 0.3s ease;
   animation: slideIn 0.5s ease-out backwards;
+}
+
+.leaderboard-item--texture {
+  background-color: rgba(12, 14, 28, 0.72);
+  background-image: var(--row-texture);
+  background-size: cover;
+  background-position: center;
+  border-color: rgba(255, 255, 255, 0.12);
 }
 
 .leaderboard-item:hover {
@@ -128,6 +148,13 @@
   animation: pulse-glow 2s ease-in-out infinite;
 }
 
+.crown-badge--star {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+  font-size: 0;
+}
+
 .leaderboard-info {
   flex: 1;
   display: flex;
@@ -188,6 +215,22 @@
   margin-bottom: 16px;
 }
 
+.empty-icon-img {
+  width: 72px;
+  height: 72px;
+  object-fit: contain;
+  opacity: 0.55;
+  margin: 0 auto 16px;
+  display: block;
+  filter: drop-shadow(0 0 12px rgba(255, 215, 0, 0.25));
+}
+
+.empty-hint {
+  margin-top: 8px;
+  font-size: var(--font-small);
+  color: var(--text-secondary);
+}
+
 @keyframes slideIn {
   from {
     opacity: 0;
@@ -197,4 +240,40 @@
     opacity: 1;
     transform: translateX(0);
   }
+}
+
+.leaderboard-heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 10px 16px;
+  margin-bottom: 16px;
+}
+
+.leaderboard-title-asset {
+  height: 32px;
+  width: auto;
+  max-width: 140px;
+  object-fit: contain;
+}
+
+.leaderboard-trophy {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+  filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.35));
+}
+
+.medal-img {
+  width: 44px;
+  height: 44px;
+  object-fit: contain;
+}
+
+.medal-num {
+  font-weight: 800;
+  color: var(--accent-cyan-start);
+  min-width: 36px;
+  text-align: center;
 }

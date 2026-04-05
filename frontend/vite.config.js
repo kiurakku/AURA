@@ -3,6 +3,8 @@ import react from '@vitejs/plugin-react';
 
 export default defineConfig({
   plugins: [react()],
+  // Матеріали лежать у `AURA/public/materials/` (зокрема assets/)
+  publicDir: '../public',
   server: {
     port: 5173,
     host: true,

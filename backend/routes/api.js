@@ -21,6 +21,22 @@ getDatabase().then(database => {
   db = database;
 });
 
+// Deduct bet from total (balance + bonus_balance). Use bonus first, then main. Returns { newBalance, newBonusBalance } or null if insufficient.
+function deductBet(db, telegramId, betAmount) {
+  const user = db.prepare('SELECT balance, bonus_balance FROM users WHERE telegram_id = ?').get(telegramId);
+  if (!user) return null;
+  const balance = user.balance || 0;
+  const bonus = user.bonus_balance || 0;
+  const total = balance + bonus;
+  if (total < betAmount) return null;
+  const fromBonus = Math.min(betAmount, bonus);
+  const fromBalance = betAmount - fromBonus;
+  const newBalance = balance - fromBalance;
+  const newBonusBalance = bonus - fromBonus;
+  db.prepare('UPDATE users SET balance = ?, bonus_balance = ? WHERE telegram_id = ?').run(newBalance, newBonusBalance, telegramId);
+  return { newBalance, newBonusBalance, total: newBalance + newBonusBalance };
+}
+
 // Middleware to validate Telegram WebApp
 function validateTelegramAuth(req, res, next) {
   const initData = req.headers['x-telegram-init-data'] || req.body.initData;
@@ -271,8 +287,8 @@ router.post('/games/crash', validateTelegramAuth, async (req, res) => {
         return res.status(400).json({ error: 'Invalid bet amount' });
       }
 
-      const user = db.prepare('SELECT balance FROM users WHERE telegram_id = ?').get(req.user.id);
-      if (!user || (user.balance || 0) < bet_amount) {
+      const deducted = deductBet(db, req.user.id, bet_amount);
+      if (!deducted) {
         return res.status(400).json({ error: 'Insufficient balance' });
       }
 
@@ -283,10 +299,6 @@ router.post('/games/crash', validateTelegramAuth, async (req, res) => {
       
       // Calculate multiplier
       const multiplier = calculateCrashMultiplier(serverSeed, clientSeed, nonce);
-      
-      // Deduct bet immediately
-      const newBalance = (user.balance || 0) - bet_amount;
-      db.prepare('UPDATE users SET balance = ? WHERE telegram_id = ?').run(newBalance, req.user.id);
       
       // Update XP and rank
       await updateUserRankAndXP(req.user.id, bet_amount);
@@ -313,7 +325,7 @@ router.post('/games/crash', validateTelegramAuth, async (req, res) => {
         success: true,
         game_id: gameId,
         multiplier,
-        new_balance: newBalance,
+        new_balance: deducted.total,
         server_seed: serverSeed,
         client_seed: clientSeed,
         nonce,
@@ -333,22 +345,22 @@ router.post('/games/crash', validateTelegramAuth, async (req, res) => {
       const actualMultiplier = cashout_multiplier || gameData.multiplier;
       const winAmount = game.bet_amount * actualMultiplier;
       
-      const user = db.prepare('SELECT balance FROM users WHERE telegram_id = ?').get(req.user.id);
+      const user = db.prepare('SELECT balance, bonus_balance FROM users WHERE telegram_id = ?').get(req.user.id);
       const newBalance = (user.balance || 0) + winAmount;
-      
       db.prepare('UPDATE users SET balance = ? WHERE telegram_id = ?').run(newBalance, req.user.id);
-      
+      const totalBalance = newBalance + (user.bonus_balance || 0);
+
       gameData.status = 'completed';
       gameData.win_amount = winAmount;
       gameData.cashout_multiplier = actualMultiplier;
       db.prepare('UPDATE games SET win_amount = ?, game_data = ? WHERE id = ?')
         .run(winAmount, JSON.stringify(gameData), game_id);
-      
+
       return res.json({
         success: true,
         multiplier: actualMultiplier,
         win_amount: winAmount,
-        new_balance: newBalance
+        new_balance: totalBalance
       });
     }
     
@@ -369,8 +381,8 @@ router.post('/games/dice', validateTelegramAuth, async (req, res) => {
     }
 
     if (!db) db = await getDatabase();
-    const user = db.prepare('SELECT balance FROM users WHERE telegram_id = ?').get(req.user.id);
-    if (!user || (user.balance || 0) < bet_amount) {
+    const deducted = deductBet(db, req.user.id, bet_amount);
+    if (!deducted) {
       return res.status(400).json({ error: 'Insufficient balance' });
     }
 
@@ -383,11 +395,12 @@ router.post('/games/dice', validateTelegramAuth, async (req, res) => {
     const result = calculateDiceResult(serverSeed, clientSeed, nonce);
     const won = (prediction === 'over' && result > target) || (prediction === 'under' && result < target);
     
-    // Calculate win amount (2x for win)
+    // Calculate win amount (2x for win); winnings go to main balance
     const winAmount = won ? bet_amount * 2 : 0;
-    const newBalance = (user.balance || 0) - bet_amount + winAmount;
-    
+    const userAfter = db.prepare('SELECT balance, bonus_balance FROM users WHERE telegram_id = ?').get(req.user.id);
+    const newBalance = (userAfter.balance || 0) + winAmount;
     db.prepare('UPDATE users SET balance = ? WHERE telegram_id = ?').run(newBalance, req.user.id);
+    const totalBalance = newBalance + (userAfter.bonus_balance || 0);
     
     // Update XP and rank
     await updateUserRankAndXP(req.user.id, bet_amount);
@@ -405,7 +418,7 @@ router.post('/games/dice', validateTelegramAuth, async (req, res) => {
       result,
       won,
       win_amount: winAmount,
-      new_balance: newBalance,
+      new_balance: totalBalance,
       server_seed: serverSeed,
       client_seed: clientSeed,
       nonce,
@@ -427,8 +440,8 @@ router.post('/games/mines', validateTelegramAuth, async (req, res) => {
     }
 
     if (!db) db = await getDatabase();
-    const user = db.prepare('SELECT balance FROM users WHERE telegram_id = ?').get(req.user.id);
-    if (!user || (user.balance || 0) < bet_amount) {
+    const deducted = deductBet(db, req.user.id, bet_amount);
+    if (!deducted) {
       return res.status(400).json({ error: 'Insufficient balance' });
     }
 
@@ -440,10 +453,6 @@ router.post('/games/mines', validateTelegramAuth, async (req, res) => {
       
       // Calculate mine positions
       const minePositions = calculateMinesPositions(serverSeed, clientSeed, nonce, grid_size || 25, mine_count || 3);
-      
-      // Deduct bet
-      const newBalance = (user.balance || 0) - bet_amount;
-      db.prepare('UPDATE users SET balance = ? WHERE telegram_id = ?').run(newBalance, req.user.id);
       
       // Update XP and rank
       await updateUserRankAndXP(req.user.id, bet_amount);
@@ -475,7 +484,7 @@ router.post('/games/mines', validateTelegramAuth, async (req, res) => {
         client_seed: clientSeed,
         nonce,
         result_hash: resultHash,
-        new_balance: newBalance
+        new_balance: deducted.total
       });
     }
     
@@ -500,23 +509,23 @@ router.post('/games/mines', validateTelegramAuth, async (req, res) => {
         const safeCells = gridSize - mineCount;
         const multiplier = 1 + (revealed.length * 0.1) * (1 - (mineCount / gridSize));
         const winAmount = game.bet_amount * multiplier;
-        const currentUser = db.prepare('SELECT balance FROM users WHERE telegram_id = ?').get(req.user.id);
+        const currentUser = db.prepare('SELECT balance, bonus_balance FROM users WHERE telegram_id = ?').get(req.user.id);
         const newBalance = (currentUser.balance || 0) + winAmount;
-        
         db.prepare('UPDATE users SET balance = ? WHERE telegram_id = ?').run(newBalance, req.user.id);
-        
+        const totalBalance = newBalance + (currentUser.bonus_balance || 0);
+
         gameData.status = 'completed';
         gameData.win_amount = winAmount;
         gameData.multiplier = multiplier;
         db.prepare('UPDATE games SET win_amount = ?, game_data = ? WHERE id = ?')
           .run(winAmount, JSON.stringify(gameData), game_id);
-        
+
         return res.json({
           success: true,
           won: true,
           multiplier,
           win_amount: winAmount,
-          new_balance: newBalance
+          new_balance: totalBalance
         });
       }
       
@@ -531,15 +540,16 @@ router.post('/games/mines', validateTelegramAuth, async (req, res) => {
         gameData.revealed = [...revealed, cell_index];
         db.prepare('UPDATE games SET game_data = ? WHERE id = ?')
           .run(JSON.stringify(gameData), game_id);
-        
-        const currentUser = db.prepare('SELECT balance FROM users WHERE telegram_id = ?').get(req.user.id);
+
+        const currentUser = db.prepare('SELECT balance, bonus_balance FROM users WHERE telegram_id = ?').get(req.user.id);
+        const totalBalance = (currentUser.balance || 0) + (currentUser.bonus_balance || 0);
         return res.json({
           success: true,
           won: false,
           hit_mine: true,
-          mine_positions: minePositions, // Send mine positions so client can display them
+          mine_positions: minePositions,
           win_amount: 0,
-          new_balance: currentUser.balance || 0
+          new_balance: totalBalance
         });
       }
       
@@ -556,23 +566,23 @@ router.post('/games/mines', validateTelegramAuth, async (req, res) => {
         // Won!
         const multiplier = 1 + (newRevealed.length * 0.1) * (1 - (mineCount / gridSize));
         const winAmount = game.bet_amount * multiplier;
-        const currentUser = db.prepare('SELECT balance FROM users WHERE telegram_id = ?').get(req.user.id);
+        const currentUser = db.prepare('SELECT balance, bonus_balance FROM users WHERE telegram_id = ?').get(req.user.id);
         const newBalance = (currentUser.balance || 0) + winAmount;
-        
         db.prepare('UPDATE users SET balance = ? WHERE telegram_id = ?').run(newBalance, req.user.id);
-        
+        const totalBalance = newBalance + (currentUser.bonus_balance || 0);
+
         gameData.status = 'completed';
         gameData.win_amount = winAmount;
         gameData.multiplier = multiplier;
         db.prepare('UPDATE games SET win_amount = ?, game_data = ? WHERE id = ?')
           .run(winAmount, JSON.stringify(gameData), game_id);
-        
+
         return res.json({
           success: true,
           won: true,
           multiplier,
           win_amount: winAmount,
-          new_balance: newBalance,
+          new_balance: totalBalance,
           all_revealed: true
         });
       }
@@ -839,6 +849,32 @@ router.post('/privacy', validateTelegramAuth, async (req, res) => {
   } catch (error) {
     console.error('Privacy settings update error:', error);
     res.status(500).json({ error: 'Failed to update privacy settings' });
+  }
+});
+
+// Update user language
+router.post('/language', validateTelegramAuth, async (req, res) => {
+  try {
+    const { language } = req.body;
+    
+    if (!language || !['uk', 'ru', 'en', 'zh', 'de', 'es'].includes(language)) {
+      return res.status(400).json({ error: 'Invalid language' });
+    }
+    
+    if (!db) db = await getDatabase();
+    
+    const user = db.prepare('SELECT id FROM users WHERE telegram_id = ?').get(req.user.id);
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    
+    db.prepare('UPDATE users SET language = ? WHERE telegram_id = ?')
+      .run(language, req.user.id);
+    
+    res.json({ success: true, language });
+  } catch (error) {
+    console.error('Language update error:', error);
+    res.status(500).json({ error: 'Failed to update language' });
   }
 });
 

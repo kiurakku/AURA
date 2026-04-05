@@ -10,6 +10,7 @@ import Profile from './pages/Profile';
 import { api } from './utils/api';
 import { getLanguage, setLanguage, t } from './utils/i18n';
 import { applySettings } from './utils/settings';
+import { NAV, UI } from './constants/uiAssets';
 
 function App() {
   const [user, setUser] = useState(null);
@@ -48,12 +49,22 @@ function App() {
       const tg = window.Telegram.WebApp;
       const lang = tg.initDataUnsafe?.user?.language_code || 'en';
       const langMap = {
-        'uk': 'uk',
-        'ru': 'ru',
-        'en': 'en',
-        'zh': 'zh',
-        'de': 'de',
-        'es': 'es'
+        uk: 'en',
+        ru: 'ru',
+        en: 'en',
+        zh: 'sc',
+        'zh-cn': 'sc',
+        ja: 'jp',
+        ko: 'kr',
+        de: 'en',
+        es: 'es',
+        pt: 'pt',
+        fr: 'en',
+        it: 'it',
+        hi: 'hi',
+        th: 'th',
+        tr: 'tr',
+        vi: 'vi',
       };
       const mappedLang = langMap[lang] || langMap[lang.split('-')[0]] || 'en';
       if (mappedLang !== currentLanguage) {
@@ -157,7 +168,8 @@ function App() {
 
   if (loading) {
     return (
-      <div className="loading-screen">
+      <div className="loading-screen loading-screen--aura">
+        <img src={UI.missionFx} alt="" className="loading-screen-deco" decoding="async" />
         <div className="spinner"></div>
         <p>Завантаження...</p>
       </div>
@@ -166,7 +178,13 @@ function App() {
 
   return (
     <ErrorBoundary>
-      <div className="app">
+      <>
+      <div className="page-ambient" aria-hidden="true">
+        <div className="page-ambient__layer page-ambient__layer--glow" />
+        <div className="page-ambient__layer page-ambient__layer--dots" />
+        <div className="page-ambient__layer page-ambient__layer--fx" />
+      </div>
+      <div className="app app--aura-assets">
         <Header 
           user={user} 
           balance={balance.total} 
@@ -183,44 +201,50 @@ function App() {
           </ErrorBoundary>
         </main>
 
-      <nav className="bottom-nav">
+      <nav className="bottom-nav bottom-nav--aura">
         <button 
+          type="button"
           className={`nav-item ${activeTab === 'home' ? 'active' : ''}`}
           onClick={() => setActiveTab('home')}
         >
-          <span className="nav-icon">🏠</span>
+          <span className="nav-icon nav-icon--asset"><img src={NAV.home} alt="" decoding="async" /></span>
           <span className="nav-label">{t('nav.home')}</span>
         </button>
         <button 
+          type="button"
           className={`nav-item ${activeTab === 'games' ? 'active' : ''}`}
           onClick={() => setActiveTab('games')}
         >
-          <span className="nav-icon">🎰</span>
+          <span className="nav-icon nav-icon--asset"><img src={NAV.games} alt="" decoding="async" /></span>
           <span className="nav-label">{t('nav.games')}</span>
         </button>
         <button 
+          type="button"
           className={`nav-item ${activeTab === 'wallet' ? 'active' : ''}`}
           onClick={() => setActiveTab('wallet')}
         >
-          <span className="nav-icon">💰</span>
+          <span className="nav-icon nav-icon--asset"><img src={NAV.wallet} alt="" decoding="async" /></span>
           <span className="nav-label">{t('nav.wallet')}</span>
         </button>
         <button 
+          type="button"
           className={`nav-item ${activeTab === 'referral' ? 'active' : ''}`}
           onClick={() => setActiveTab('referral')}
         >
-          <span className="nav-icon">👥</span>
+          <span className="nav-icon nav-icon--asset"><img src={NAV.referral} alt="" decoding="async" /></span>
           <span className="nav-label">{t('nav.referral')}</span>
         </button>
         <button 
+          type="button"
           className={`nav-item ${activeTab === 'profile' ? 'active' : ''}`}
           onClick={() => setActiveTab('profile')}
         >
-          <span className="nav-icon">👤</span>
+          <span className="nav-icon nav-icon--asset"><img src={NAV.profile} alt="" decoding="async" /></span>
           <span className="nav-label">{t('nav.profile')}</span>
         </button>
       </nav>
       </div>
+      </>
     </ErrorBoundary>
   );
 }
