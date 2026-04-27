@@ -3,7 +3,7 @@
 ## 1. Додати секрети
 
 ```bash
-fly secrets set CRYPTO_PAY_TOKEN=516747:AANQtO6n9SI3kBpHLKj6osKGZFvBJeMohV3 --app auraslots
+fly secrets set CRYPTO_PAY_TOKEN=<your_token_from_crypto_pay> --app auraslots
 fly secrets set TELEGRAM_BOT_TOKEN=your_bot_token --app auraslots
 fly secrets set TELEGRAM_WEBAPP_URL=https://auraslots.fly.dev --app auraslots
 ```

@@ -9,7 +9,7 @@
 cd "D:\WorkSpace - IT\AURA"
 
 # Встановіть токен Crypto Pay
-fly secrets set CRYPTO_PAY_TOKEN=516747:AANQtO6n9SI3kBpHLKj6osKGZFvBJeMohV3 --app auraslots
+fly secrets set CRYPTO_PAY_TOKEN=<your_token_from_crypto_pay> --app auraslots
 
 # Перевірте, що секрет встановлено
 fly secrets list --app auraslots
@@ -21,7 +21,7 @@ fly secrets list --app auraslots
 
 ```bash
 # Crypto Pay токен
-fly secrets set CRYPTO_PAY_TOKEN=516747:AANQtO6n9SI3kBpHLKj6osKGZFvBJeMohV3 --app auraslots
+fly secrets set CRYPTO_PAY_TOKEN=<your_token_from_crypto_pay> --app auraslots
 
 # Telegram Bot Token (якщо ще не встановлено)
 fly secrets set TELEGRAM_BOT_TOKEN=your_bot_token_here --app auraslots
